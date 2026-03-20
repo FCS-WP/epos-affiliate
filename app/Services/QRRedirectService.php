@@ -15,7 +15,8 @@ class QRRedirectService {
     }
 
     /**
-     * Intercept /my/qr/[BD_TOKEN] and redirect to the checkout URL with coupon + UTM params.
+     * Intercept /my/qr/[BD_TOKEN] and redirect to the bluetap page with BD params.
+     * No coupon is used — BD attribution is stored in session by CheckoutService.
      */
     public static function handle_qr_redirect() {
         $request_uri = trim( $_SERVER['REQUEST_URI'], '/' );
@@ -45,17 +46,21 @@ class QRRedirectService {
             );
         }
 
-        $reseller = Reseller::find( $bd->reseller_id );
-        $settings = get_option( 'epos_affiliate_settings', [] );
+        $reseller   = Reseller::find( $bd->reseller_id );
+        $settings   = get_option( 'epos_affiliate_settings', [] );
         $product_id = $settings['product_id'] ?? 2174;
 
+        // Pass BD info as query params — CheckoutService will pick these up and store in session.
         $redirect_url = add_query_arg( [
-            'add-to-cart'  => $product_id,
-            'coupon'       => $bd->tracking_code,
-            'utm_source'   => 'qr',
-            'utm_medium'   => 'bd_referral',
-            'utm_campaign' => $reseller ? $reseller->slug : '',
-            'utm_content'  => sanitize_title( $bd->name ),
+            'add-to-cart'    => $product_id,
+            'bd_token'       => $token,
+            'bd_tracking'    => $bd->tracking_code,
+            'bd_user_id'     => $bd->wp_user_id,
+            'reseller_id'    => $bd->reseller_id,
+            'utm_source'     => 'qr',
+            'utm_medium'     => 'bd_referral',
+            'utm_campaign'   => $reseller ? $reseller->slug : '',
+            'utm_content'    => sanitize_title( $bd->name ),
         ], home_url( '/my/bluetap/' ) );
 
         wp_redirect( esc_url_raw( $redirect_url ) );

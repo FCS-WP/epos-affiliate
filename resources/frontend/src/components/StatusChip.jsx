@@ -1,15 +1,24 @@
 import Chip from '@mui/material/Chip';
+import CircleIcon from '@mui/icons-material/Circle';
 
 const STATUS_CONFIG = {
-  active: { label: 'Active', color: 'success' },
+  active:   { label: 'Active',   color: 'success' },
   inactive: { label: 'Inactive', color: 'error' },
-  pending: { label: 'Pending', color: 'warning' },
+  pending:  { label: 'Pending',  color: 'warning' },
   approved: { label: 'Approved', color: 'info' },
-  paid: { label: 'Paid', color: 'success' },
-  voided: { label: 'Voided', color: 'error' },
+  paid:     { label: 'Paid',     color: 'success' },
+  voided:   { label: 'Voided',   color: 'error' },
 };
 
 export default function StatusChip({ status }) {
   const config = STATUS_CONFIG[status] || { label: status, color: 'default' };
-  return <Chip label={config.label} color={config.color} size="small" variant="outlined" />;
+  return (
+    <Chip
+      icon={<CircleIcon sx={{ fontSize: 8, '&&': { color: 'inherit' } }} />}
+      label={config.label}
+      color={config.color}
+      size="small"
+      variant="filled"
+    />
+  );
 }

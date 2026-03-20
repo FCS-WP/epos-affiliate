@@ -15,10 +15,11 @@ class OrderAttributionService {
 
     /**
      * When an order reaches "processing" (payment received):
-     * 1. Check for a BD tracking coupon
-     * 2. Write attribution meta to the order
-     * 3. Create an order attribution record
-     * 4. Create a pending sales commission record
+     * 1. Read BD attribution from order meta (written by CheckoutService)
+     * 2. Create an order attribution record
+     * 3. Create a pending sales commission record
+     *
+     * No coupon lookup needed — BD data is stored as invisible order meta.
      */
     public static function attribute_order( $order_id ) {
         $order = wc_get_order( $order_id );
@@ -27,53 +28,19 @@ class OrderAttributionService {
             return;
         }
 
-        // Skip if already attributed.
-        if ( $order->get_meta( '_bd_coupon_code' ) ) {
+        // Skip if already processed (attribution record exists).
+        if ( $order->get_meta( '_epos_attribution_processed' ) ) {
             return;
         }
 
-        // Find a BD tracking coupon among applied coupons.
-        $bd_coupon = null;
-        foreach ( $order->get_coupon_codes() as $code ) {
-            $coupon = new \WC_Coupon( $code );
-            if ( 'true' === $coupon->get_meta( '_is_bd_tracking_coupon' ) ) {
-                $bd_coupon = $coupon;
-                break;
-            }
+        // Read BD attribution from order meta (written by CheckoutService::write_attribution_to_order).
+        $coupon_code = $order->get_meta( '_bd_coupon_code' );
+        $bd_user_id  = absint( $order->get_meta( '_bd_user_id' ) );
+        $reseller_id = absint( $order->get_meta( '_reseller_id' ) );
+
+        if ( ! $coupon_code || ! $bd_user_id ) {
+            return; // Not a BD-attributed order.
         }
-
-        if ( ! $bd_coupon ) {
-            return;
-        }
-
-        $bd_user_id  = absint( $bd_coupon->get_meta( '_bd_user_id' ) );
-        $reseller_id = absint( $bd_coupon->get_meta( '_reseller_id' ) );
-        $coupon_code = $bd_coupon->get_code();
-
-        // Write order meta.
-        $order->update_meta_data( '_bd_coupon_code', $coupon_code );
-        $order->update_meta_data( '_bd_user_id', $bd_user_id );
-        $order->update_meta_data( '_reseller_id', $reseller_id );
-        $order->update_meta_data( '_attribution_status', 'attributed' );
-
-        // Pull UTM from session (stored by CheckoutService).
-        $session = WC()->session;
-        if ( $session ) {
-            $utm_map = [
-                '_attribution_source'   => 'epos_utm_source',
-                '_attribution_medium'   => 'epos_utm_medium',
-                '_attribution_campaign' => 'epos_utm_campaign',
-                '_attribution_content'  => 'epos_utm_content',
-            ];
-            foreach ( $utm_map as $meta_key => $session_key ) {
-                $val = $session->get( $session_key, '' );
-                if ( $val ) {
-                    $order->update_meta_data( $meta_key, sanitize_text_field( $val ) );
-                }
-            }
-        }
-
-        $order->save();
 
         // Find the BD record by wp_user_id.
         $bd = \EposAffiliate\Models\BD::find_by_user_id( $bd_user_id );
@@ -107,5 +74,9 @@ class OrderAttributionService {
             'status'       => 'pending',
             'period_month' => gmdate( 'Y-m' ),
         ] );
+
+        // Mark as processed so we don't create duplicate records.
+        $order->update_meta_data( '_epos_attribution_processed', '1' );
+        $order->save();
     }
 }

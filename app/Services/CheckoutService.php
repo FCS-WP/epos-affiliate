@@ -4,29 +4,31 @@ namespace EposAffiliate\Services;
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Handles the QR → checkout flow.
+ *
+ * Instead of applying a WooCommerce coupon (which customers can see/remove),
+ * BD attribution is stored silently in the WC session, then written directly
+ * to order meta when the order is created. Nothing is visible to the customer.
+ */
 class CheckoutService {
 
     public static function init() {
-        add_action( 'template_redirect', [ self::class, 'handle_coupon_redirect' ], 20 );
-        add_action( 'wp_enqueue_scripts', [ self::class, 'maybe_hide_coupon_field' ] );
+        add_action( 'template_redirect', [ self::class, 'handle_bd_redirect' ], 20 );
+
+        // Write BD attribution data to order meta at order creation.
+        add_action( 'woocommerce_checkout_create_order', [ self::class, 'write_attribution_to_order' ], 10, 2 );
     }
 
     /**
-     * On the bluetap page, if a coupon param is present:
+     * On the bluetap page, if BD params are present:
      * 1. Empty cart
      * 2. Add product to cart
-     * 3. Apply tracking coupon
-     * 4. Store UTM params in WC session
-     * 5. Redirect to checkout
+     * 3. Store BD + UTM info in WC session (no coupon)
+     * 4. Redirect to checkout
      */
-    public static function handle_coupon_redirect() {
+    public static function handle_bd_redirect() {
         if ( ! is_page() ) {
-            return;
-        }
-
-        $coupon_code = isset( $_GET['coupon'] ) ? sanitize_text_field( wp_unslash( $_GET['coupon'] ) ) : '';
-
-        if ( empty( $coupon_code ) ) {
             return;
         }
 
@@ -36,9 +38,10 @@ class CheckoutService {
             return;
         }
 
-        // Verify this is a BD tracking coupon.
-        $coupon = new \WC_Coupon( $coupon_code );
-        if ( ! $coupon->get_id() || 'true' !== $coupon->get_meta( '_is_bd_tracking_coupon' ) ) {
+        // Check for BD tracking params (set by QRRedirectService).
+        $bd_tracking = isset( $_GET['bd_tracking'] ) ? sanitize_text_field( wp_unslash( $_GET['bd_tracking'] ) ) : '';
+
+        if ( empty( $bd_tracking ) ) {
             return;
         }
 
@@ -51,10 +54,13 @@ class CheckoutService {
         // 2. Add product.
         WC()->cart->add_to_cart( $product_id, 1 );
 
-        // 3. Apply coupon.
-        WC()->cart->apply_coupon( $coupon_code );
+        // 3. Store BD attribution in session (invisible to customer).
+        WC()->session->set( 'epos_bd_tracking_code', $bd_tracking );
+        WC()->session->set( 'epos_bd_user_id', absint( $_GET['bd_user_id'] ?? 0 ) );
+        WC()->session->set( 'epos_reseller_id', absint( $_GET['reseller_id'] ?? 0 ) );
+        WC()->session->set( 'epos_qr_sourced', 'yes' );
 
-        // 4. Store UTM params in session.
+        // Store UTM params in session.
         $utm_keys = [ 'utm_source', 'utm_medium', 'utm_campaign', 'utm_content' ];
         foreach ( $utm_keys as $key ) {
             if ( isset( $_GET[ $key ] ) ) {
@@ -62,33 +68,56 @@ class CheckoutService {
             }
         }
 
-        // Mark this session as QR-sourced so we can lock the coupon field.
-        WC()->session->set( 'epos_qr_sourced', 'yes' );
-
-        // 5. Redirect to checkout.
+        // 4. Redirect to checkout.
         wp_redirect( wc_get_checkout_url() );
         exit;
     }
 
     /**
-     * On checkout page, if QR-sourced, enqueue inline JS to hide/lock the coupon field.
+     * Write BD attribution data directly to order meta at order creation.
+     * This is called during woocommerce_checkout_create_order, before the order is saved.
+     * The customer never sees any of this — it's all server-side.
      */
-    public static function maybe_hide_coupon_field() {
-        if ( ! is_checkout() || ! WC()->session ) {
+    public static function write_attribution_to_order( $order, $data ) {
+        if ( ! WC()->session ) {
             return;
         }
 
-        if ( 'yes' !== WC()->session->get( 'epos_qr_sourced' ) ) {
+        $bd_tracking = WC()->session->get( 'epos_bd_tracking_code' );
+        $bd_user_id  = WC()->session->get( 'epos_bd_user_id' );
+        $reseller_id = WC()->session->get( 'epos_reseller_id' );
+
+        if ( ! $bd_tracking || ! $bd_user_id ) {
             return;
         }
 
-        wp_add_inline_script( 'woocommerce', '
-            document.addEventListener("DOMContentLoaded", function() {
-                var couponToggle = document.querySelector(".woocommerce-form-coupon-toggle");
-                var couponForm   = document.querySelector(".checkout_coupon");
-                if (couponToggle) couponToggle.style.display = "none";
-                if (couponForm) couponForm.style.display = "none";
-            });
-        ' );
+        // Write BD attribution meta directly to the order.
+        $order->update_meta_data( '_bd_coupon_code', sanitize_text_field( $bd_tracking ) );
+        $order->update_meta_data( '_bd_user_id', absint( $bd_user_id ) );
+        $order->update_meta_data( '_reseller_id', absint( $reseller_id ) );
+        $order->update_meta_data( '_attribution_status', 'attributed' );
+
+        // UTM params.
+        $utm_map = [
+            '_attribution_source'   => 'epos_utm_source',
+            '_attribution_medium'   => 'epos_utm_medium',
+            '_attribution_campaign' => 'epos_utm_campaign',
+            '_attribution_content'  => 'epos_utm_content',
+        ];
+        foreach ( $utm_map as $meta_key => $session_key ) {
+            $val = WC()->session->get( $session_key, '' );
+            if ( $val ) {
+                $order->update_meta_data( $meta_key, sanitize_text_field( $val ) );
+            }
+        }
+
+        // Clear session data after writing to order.
+        WC()->session->set( 'epos_bd_tracking_code', null );
+        WC()->session->set( 'epos_bd_user_id', null );
+        WC()->session->set( 'epos_reseller_id', null );
+        WC()->session->set( 'epos_qr_sourced', null );
+        foreach ( array_values( $utm_map ) as $session_key ) {
+            WC()->session->set( $session_key, null );
+        }
     }
 }

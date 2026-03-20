@@ -67,6 +67,7 @@ class Shortcodes {
             'nonce'    => wp_create_nonce( 'wp_rest' ),
             'userId'   => get_current_user_id(),
             'userRole' => $role,
+            'userName' => $user->display_name ?: $user->user_login,
         ] );
     }
 }
