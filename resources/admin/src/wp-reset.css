@@ -1,0 +1,43 @@
+/*
+ * Minimal overrides for remaining WP admin styles that leak into our React app.
+ * WP default stylesheets are deregistered in AdminPage.php — this file only
+ * handles edge cases and z-index for MUI portals.
+ */
+
+#epos-affiliate-admin {
+  /* Prevent WP admin link color from overriding MUI */
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  a:hover,
+  a:focus,
+  a:active {
+    color: inherit;
+    text-decoration: none;
+    box-shadow: none;
+    outline: none;
+  }
+
+  /* Reset WP heading margins */
+  h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* MUI portals (Dialogs, Popovers, Snackbars) render outside #epos-affiliate-admin,
+   so they need global z-index to sit above WP admin. */
+.MuiDialog-root,
+.MuiModal-root {
+  z-index: 100001 !important;
+}
+
+.MuiPopover-root,
+.MuiPopper-root {
+  z-index: 100002 !important;
+}
+
+.MuiSnackbar-root {
+  z-index: 100003 !important;
+}
