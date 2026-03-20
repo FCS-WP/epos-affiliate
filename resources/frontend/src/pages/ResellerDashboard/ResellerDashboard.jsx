@@ -220,7 +220,7 @@ export default function ResellerDashboard() {
   ];
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
+    <Box sx={{ maxWidth: 1200, mx: 'auto', overflow: 'hidden' }}>
       {/* ── Page Header ── */}
       <Box sx={{ mb: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2 }}>
@@ -251,13 +251,13 @@ export default function ResellerDashboard() {
       {loading ? (
         <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap' }}>
           {[1, 2, 3].map((i) => (
-            <Skeleton key={i} variant="rounded" height={140} sx={{ borderRadius: 4, flex: '1 1 280px' }} />
+            <Skeleton key={i} variant="rounded" height={140} sx={{ borderRadius: 4, flex: '1 1 auto', minWidth: 0 }} />
           ))}
         </Box>
       ) : (
         <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap' }}>
           {/* Total Org Sales */}
-          <Card sx={{ flex: '1 1 280px', border: `2px solid ${theme.palette.primary.main}`, backgroundColor: theme.palette.primary.main }}>
+          <Card sx={{ flex: '1 1 auto', minWidth: 0, border: `2px solid ${theme.palette.primary.main}`, backgroundColor: theme.palette.primary.main }}>
             <CardContent sx={{ p: 3, '&:last-child': { pb: 3 } }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <Box>
@@ -280,7 +280,7 @@ export default function ResellerDashboard() {
           </Card>
 
           {/* Total Org Commission */}
-          <Card sx={{ flex: '1 1 280px' }}>
+          <Card sx={{ flex: '1 1 auto', minWidth: 0 }}>
             <CardContent sx={{ p: 3, '&:last-child': { pb: 3 } }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <Box>
@@ -305,7 +305,7 @@ export default function ResellerDashboard() {
           </Card>
 
           {/* Active BD Count */}
-          <Card sx={{ flex: '1 1 280px' }}>
+          <Card sx={{ flex: '1 1 auto', minWidth: 0 }}>
             <CardContent sx={{ p: 3, '&:last-child': { pb: 3 } }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <Box>
@@ -327,13 +327,13 @@ export default function ResellerDashboard() {
       )}
 
       {/* ── Search + Date + Export ── */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+      <Box sx={{ display: 'flex', gap: 1.5, mb: 4, flexWrap: 'wrap', alignItems: 'center' }}>
         <TextField
           placeholder="Filter by BD Name or ID..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           size="small"
-          sx={{ flex: '1 1 250px', maxWidth: 400 }}
+          sx={{ flex: '1 1 180px', minWidth: 0 }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -342,28 +342,26 @@ export default function ResellerDashboard() {
             ),
           }}
         />
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-          <CalendarMonthIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap', flex: '1 1 auto', minWidth: 0 }}>
+          <CalendarMonthIcon sx={{ color: 'text.secondary', fontSize: 20, display: { xs: 'none', sm: 'block' } }} />
           <DatePicker
             label="From"
             value={dateFrom}
             onChange={setDateFrom}
-            slotProps={{ textField: { size: 'small', sx: { width: 155 } } }}
+            slotProps={{ textField: { size: 'small', sx: { flex: '1 1 120px', minWidth: 0 } } }}
           />
-          <Typography variant="body2" color="text.secondary">-</Typography>
           <DatePicker
             label="To"
             value={dateTo}
             onChange={setDateTo}
-            slotProps={{ textField: { size: 'small', sx: { width: 155 } } }}
+            slotProps={{ textField: { size: 'small', sx: { flex: '1 1 120px', minWidth: 0 } } }}
           />
         </Box>
-        <Box sx={{ flexGrow: 1 }} />
         <Button
           variant="contained"
           startIcon={<FileDownloadIcon />}
           onClick={handleExport}
-          sx={{ whiteSpace: 'nowrap' }}
+          sx={{ whiteSpace: 'nowrap', flex: { xs: '1 1 100%', sm: '0 0 auto' } }}
         >
           Export to CSV
         </Button>
