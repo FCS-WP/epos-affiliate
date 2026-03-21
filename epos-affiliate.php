@@ -77,6 +77,9 @@ add_action( 'plugins_loaded', function () {
     // Frontend shortcodes.
     EposAffiliate\Setup\Shortcodes::init();
 
+    // Custom dashboard page template (clean HTML, no theme CSS/JS).
+    EposAffiliate\Setup\DashboardTemplate::init();
+
     // Login/logout redirects for BD and Reseller roles.
     EposAffiliate\Setup\LoginRedirect::init();
 } );
