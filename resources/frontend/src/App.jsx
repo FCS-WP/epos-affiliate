@@ -31,6 +31,7 @@ import BDDashboard from "./pages/BDDashboard/BDDashboard";
 import BDOrders from "./pages/BDOrders/BDOrders";
 import BDQRCode from "./pages/BDQRCode/BDQRCode";
 import ResellerProfile from "./pages/ResellerProfile/ResellerProfile";
+import ResellerBDOrders from "./pages/ResellerBDOrders/ResellerBDOrders";
 import BDProfile from "./pages/BDProfile/BDProfile";
 
 const config = window.eposAffiliate || {};
@@ -300,6 +301,7 @@ function RoleRouter({ role }) {
     <Routes>
       <Route path="/dashboard" element={<ResellerDashboard />} />
       <Route path="/performance" element={<ResellerDashboard />} />
+      <Route path="/orders/:bdId" element={<ResellerBDOrders />} />
       <Route path="/profile" element={<ResellerProfile />} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

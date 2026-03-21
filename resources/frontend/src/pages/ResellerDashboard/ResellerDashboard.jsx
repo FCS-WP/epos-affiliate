@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { DataGrid } from '@mui/x-data-grid';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import Box from '@mui/material/Box';
@@ -17,6 +18,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Avatar from '@mui/material/Avatar';
 import LinearProgress from '@mui/material/LinearProgress';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import { alpha, useTheme } from '@mui/material/styles';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
@@ -27,6 +29,8 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import dayjs from 'dayjs';
 import api from '../../api/client';
 import StatusChip from '../../components/StatusChip';
@@ -35,6 +39,8 @@ const config = window.eposAffiliate || {};
 
 export default function ResellerDashboard() {
   const theme = useTheme();
+  const navigate = useNavigate();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -217,7 +223,92 @@ export default function ResellerDashboard() {
         </Typography>
       ),
     },
+    {
+      field: 'actions',
+      headerName: '',
+      width: 120,
+      sortable: false,
+      renderCell: (params) => (
+        <Button
+          size="small"
+          variant="text"
+          startIcon={<VisibilityIcon sx={{ fontSize: 16 }} />}
+          onClick={() => navigate(`/orders/${params.row.id}`)}
+          sx={{ fontSize: '0.7rem', textTransform: 'none' }}
+        >
+          View Orders
+        </Button>
+      ),
+    },
   ];
+
+  // Mobile BD card
+  const BDCard = ({ bd }) => {
+    const revenue = bd.revenue || 0;
+    const pct = maxRevenue > 0 ? (revenue / maxRevenue) * 100 : 0;
+    return (
+      <Card
+        sx={{
+          mb: 1.5,
+          border: `1px solid ${alpha(theme.palette.primary.main, 0.08)}`,
+          cursor: 'pointer',
+          '&:hover': { borderColor: alpha(theme.palette.primary.main, 0.2) },
+        }}
+        onClick={() => navigate(`/orders/${bd.id}`)}
+      >
+        <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Avatar
+                sx={{
+                  width: 36, height: 36,
+                  backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                  color: theme.palette.primary.main,
+                  fontSize: '0.8rem', fontWeight: 700,
+                }}
+              >
+                {(bd.name || '?').charAt(0).toUpperCase()}
+              </Avatar>
+              <Box>
+                <Typography variant="body2" fontWeight={600}>{bd.name}</Typography>
+                <Chip
+                  label={bd.tracking_code}
+                  size="small"
+                  sx={{ fontFamily: 'monospace', fontSize: '0.65rem', height: 20, fontWeight: 600, backgroundColor: alpha(theme.palette.primary.main, 0.06), color: theme.palette.primary.main }}
+                />
+              </Box>
+            </Box>
+            <ChevronRightIcon sx={{ color: 'text.secondary' }} />
+          </Box>
+          <Box sx={{ display: 'flex', gap: 3, mb: 1 }}>
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.6rem', letterSpacing: '0.05em' }}>
+                Orders
+              </Typography>
+              <Typography variant="body1" fontWeight={700}>{bd.orders || 0}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', fontSize: '0.6rem', letterSpacing: '0.05em' }}>
+                Revenue
+              </Typography>
+              <Typography variant="body1" fontWeight={700} color="secondary">
+                RM {Number(revenue).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+              </Typography>
+            </Box>
+          </Box>
+          <LinearProgress
+            variant="determinate"
+            value={pct}
+            sx={{
+              height: 4, borderRadius: 2,
+              backgroundColor: alpha(theme.palette.secondary.main, 0.1),
+              '& .MuiLinearProgress-bar': { borderRadius: 2, backgroundColor: theme.palette.secondary.main },
+            }}
+          />
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
     <Box sx={{ maxWidth: 1200, mx: 'auto', overflow: 'hidden' }}>
@@ -249,13 +340,13 @@ export default function ResellerDashboard() {
 
       {/* ── KPI Cards ── */}
       {loading ? (
-        <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: '1fr 1fr 1fr' }, gap: 2, mb: 4 }}>
           {[1, 2, 3].map((i) => (
-            <Skeleton key={i} variant="rounded" height={140} sx={{ borderRadius: 4, flex: '1 1 auto', minWidth: 0 }} />
+            <Skeleton key={i} variant="rounded" height={140} sx={{ borderRadius: 4 }} />
           ))}
         </Box>
       ) : (
-        <Box sx={{ display: 'flex', gap: 2, mb: 4, flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: '1fr 1fr 1fr' }, gap: 2, mb: 4 }}>
           {/* Total Org Sales */}
           <Card sx={{ flex: '1 1 auto', minWidth: 0, border: `2px solid ${theme.palette.primary.main}`, backgroundColor: theme.palette.primary.main }}>
             <CardContent sx={{ p: 3, '&:last-child': { pb: 3 } }}>
@@ -367,51 +458,51 @@ export default function ResellerDashboard() {
         </Button>
       </Box>
 
-      {/* ── Agent Performance Table ── */}
-      <Paper sx={{ overflow: 'hidden' }}>
-        {/* Table Header */}
-        <Box
+      {/* ── Agent Performance ── */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <EmojiEventsIcon sx={{ color: 'primary.main' }} />
+          <Typography variant="h6">Agent Performance Rankings</Typography>
+        </Box>
+        <Tabs
+          value={sortTab}
+          onChange={(_, v) => setSortTab(v)}
           sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            px: 3,
-            py: 2,
-            borderBottom: '1px solid',
-            borderColor: 'divider',
+            minHeight: 36,
+            '& .MuiTab-root': {
+              minHeight: 36,
+              py: 0,
+              px: 2,
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+            },
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <EmojiEventsIcon sx={{ color: 'primary.main' }} />
-            <Typography variant="h6">Agent Performance Rankings</Typography>
-          </Box>
-          <Tabs
-            value={sortTab}
-            onChange={(_, v) => setSortTab(v)}
-            sx={{
-              minHeight: 36,
-              '& .MuiTab-root': {
-                minHeight: 36,
-                py: 0,
-                px: 2,
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-              },
-            }}
-          >
-            <Tab label="By Revenue" />
-            <Tab label="By Volume" />
-          </Tabs>
-        </Box>
+          <Tab label="By Revenue" />
+          <Tab label="By Volume" />
+        </Tabs>
+      </Box>
 
-        {/* DataGrid */}
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-            <CircularProgress />
-          </Box>
-        ) : (
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+          <CircularProgress />
+        </Box>
+      ) : sortedBDs.length === 0 ? (
+        <Paper sx={{ p: 4, textAlign: 'center' }}>
+          <Typography color="text.secondary">No BD agents found.</Typography>
+        </Paper>
+      ) : isMobile ? (
+        /* Mobile: BD Card list */
+        <Box>
+          {sortedBDs.map((bd) => (
+            <BDCard key={bd.id || bd.tracking_code} bd={bd} />
+          ))}
+        </Box>
+      ) : (
+        /* Desktop: DataGrid */
+        <Paper sx={{ overflow: 'hidden' }}>
           <DataGrid
             rows={sortedBDs}
             columns={columns}
@@ -434,8 +525,8 @@ export default function ResellerDashboard() {
               },
             }}
           />
-        )}
-      </Paper>
+        </Paper>
+      )}
     </Box>
   );
 }
