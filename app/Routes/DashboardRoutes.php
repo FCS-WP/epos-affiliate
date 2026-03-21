@@ -23,6 +23,12 @@ class DashboardRoutes {
             'permission_callback' => [ RouteRegistrar::class, 'can_view_reseller_dashboard' ],
         ] );
 
+        register_rest_route( $ns, '/dashboard/reseller/bd/(?P<bd_id>\d+)/orders', [
+            'methods'             => 'GET',
+            'callback'            => [ DashboardController::class, 'reseller_bd_orders' ],
+            'permission_callback' => [ RouteRegistrar::class, 'can_view_reseller_dashboard' ],
+        ] );
+
         register_rest_route( $ns, '/dashboard/bd', [
             'methods'             => 'GET',
             'callback'            => [ DashboardController::class, 'bd' ],

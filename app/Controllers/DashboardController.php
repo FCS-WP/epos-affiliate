@@ -205,6 +205,63 @@ class DashboardController {
         ], 200 );
     }
 
+    /**
+     * Reseller views orders for a specific BD.
+     */
+    public static function reseller_bd_orders( WP_REST_Request $request ) {
+        $reseller = self::get_current_reseller();
+        if ( ! $reseller ) {
+            return new WP_REST_Response( [ 'message' => 'Reseller not found.' ], 403 );
+        }
+
+        $bd_id = absint( $request->get_param( 'bd_id' ) );
+        $bd    = BD::find( $bd_id );
+
+        if ( ! $bd || (int) $bd->reseller_id !== (int) $reseller->id ) {
+            return new WP_REST_Response( [ 'message' => 'BD not found or not in your organization.' ], 403 );
+        }
+
+        $date_from = $request->get_param( 'date_from' );
+        $date_to   = $request->get_param( 'date_to' );
+
+        $attributions = OrderAttribution::all( array_filter( [
+            'bd_id'     => $bd->id,
+            'date_from' => $date_from,
+            'date_to'   => $date_to,
+        ] ) );
+
+        $commission_records = Commission::all( [
+            'bd_id' => $bd->id,
+            'type'  => 'sales',
+        ] );
+
+        $comm_map = [];
+        foreach ( $commission_records as $cr ) {
+            $comm_map[ (int) $cr->reference_id ] = $cr;
+        }
+
+        $orders = [];
+        foreach ( $attributions as $attr ) {
+            $cr          = $comm_map[ (int) $attr->order_id ] ?? null;
+            $orders[]    = [
+                'order_id'      => $attr->order_id,
+                'date'          => $attr->attributed_at,
+                'value'         => (float) $attr->order_value,
+                'commission'    => $cr ? (float) $cr->amount : 0,
+                'payout_status' => $cr ? $cr->status : 'pending',
+            ];
+        }
+
+        return new WP_REST_Response( [
+            'bd' => [
+                'id'            => $bd->id,
+                'name'          => $bd->name,
+                'tracking_code' => $bd->tracking_code,
+            ],
+            'orders' => $orders,
+        ], 200 );
+    }
+
     // ── Helpers ──
 
     /**
