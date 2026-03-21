@@ -16,32 +16,39 @@ import ListItemText from "@mui/material/ListItemText";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import Avatar from "@mui/material/Avatar";
-import IconButton from "@mui/material/IconButton";
+import BottomNavigation from "@mui/material/BottomNavigation";
+import BottomNavigationAction from "@mui/material/BottomNavigationAction";
 import { alpha, useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import PersonIcon from "@mui/icons-material/Person";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import LogoutIcon from "@mui/icons-material/Logout";
-import MenuIcon from "@mui/icons-material/Menu";
-import Fab from "@mui/material/Fab";
-import CloseIcon from "@mui/icons-material/Close";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import QrCode2Icon from "@mui/icons-material/QrCode2";
 import ResellerDashboard from "./pages/ResellerDashboard/ResellerDashboard";
 import BDDashboard from "./pages/BDDashboard/BDDashboard";
+import BDOrders from "./pages/BDOrders/BDOrders";
+import BDQRCode from "./pages/BDQRCode/BDQRCode";
 import ResellerProfile from "./pages/ResellerProfile/ResellerProfile";
 import BDProfile from "./pages/BDProfile/BDProfile";
 
 const config = window.eposAffiliate || {};
 
 const SIDEBAR_WIDTH = 260;
+const BOTTOM_NAV_HEIGHT = 64;
 
-function getNavItems(role) {
-  if (role === "bd_agent") {
-    return [
-      { path: "/dashboard", label: "Dashboard", icon: <DashboardIcon /> },
-      { path: "/profile", label: "My Profile", icon: <PersonIcon /> },
-    ];
-  }
+/* ── Navigation config per role ── */
+function getBDNav() {
+  return [
+    { path: "/dashboard", label: "Dashboard", icon: <DashboardIcon /> },
+    { path: "/orders", label: "Orders", icon: <ReceiptLongIcon /> },
+    { path: "/qr", label: "QR Code", icon: <QrCode2Icon /> },
+    { path: "/profile", label: "Profile", icon: <PersonIcon /> },
+  ];
+}
+
+function getResellerNav() {
   return [
     { path: "/dashboard", label: "Overview", icon: <DashboardIcon /> },
     { path: "/performance", label: "BD Performance", icon: <BarChartIcon /> },
@@ -49,7 +56,12 @@ function getNavItems(role) {
   ];
 }
 
-function SidebarContent({ onNavigate }) {
+function getNavItems(role) {
+  return role === "bd_agent" ? getBDNav() : getResellerNav();
+}
+
+/* ── Desktop Sidebar ── */
+function SidebarContent() {
   const theme = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
@@ -64,11 +76,6 @@ function SidebarContent({ onNavigate }) {
     .join("")
     .toUpperCase()
     .slice(0, 2);
-
-  const handleNav = (path) => {
-    navigate(path);
-    if (onNavigate) onNavigate();
-  };
 
   return (
     <Box
@@ -133,7 +140,7 @@ function SidebarContent({ onNavigate }) {
           return (
             <ListItemButton
               key={item.path}
-              onClick={() => handleNav(item.path)}
+              onClick={() => navigate(item.path)}
               sx={{
                 borderRadius: 2,
                 mb: 0.5,
@@ -189,7 +196,7 @@ function SidebarContent({ onNavigate }) {
         })}
       </List>
 
-      {/* Bottom section */}
+      {/* Logout */}
       <Box sx={{ px: 1.5, pb: 1 }}>
         <Divider sx={{ borderColor: alpha("#fff", 0.08), mb: 1.5, mx: 0.5 }} />
         <ListItemButton
@@ -221,11 +228,68 @@ function SidebarContent({ onNavigate }) {
   );
 }
 
+/* ── Mobile Bottom Navigation ── */
+function MobileBottomNav() {
+  const theme = useTheme();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const role = config.userRole;
+  const navItems = getNavItems(role);
+
+  const currentIndex = navItems.findIndex((item) => location.pathname === item.path);
+
+  return (
+    <BottomNavigation
+      value={currentIndex >= 0 ? currentIndex : 0}
+      onChange={(_, newValue) => navigate(navItems[newValue].path)}
+      sx={{
+        position: "fixed",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1100,
+        height: BOTTOM_NAV_HEIGHT,
+        borderTop: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+        backgroundColor: "#fff",
+        boxShadow: `0 -2px 10px ${alpha("#000", 0.05)}`,
+        "& .MuiBottomNavigationAction-root": {
+          minWidth: 0,
+          py: 1,
+          color: alpha(theme.palette.primary.main, 0.4),
+          "&.Mui-selected": {
+            color: theme.palette.primary.main,
+          },
+        },
+        "& .MuiBottomNavigationAction-label": {
+          fontSize: "0.65rem",
+          fontWeight: 600,
+          mt: 0.3,
+          "&.Mui-selected": {
+            fontSize: "0.65rem",
+          },
+        },
+      }}
+      showLabels
+    >
+      {navItems.map((item) => (
+        <BottomNavigationAction
+          key={item.path}
+          label={item.label}
+          icon={item.icon}
+        />
+      ))}
+    </BottomNavigation>
+  );
+}
+
+/* ── Route definitions ── */
 function RoleRouter({ role }) {
   if (role === "bd_agent") {
     return (
       <Routes>
         <Route path="/dashboard" element={<BDDashboard />} />
+        <Route path="/orders" element={<BDOrders />} />
+        <Route path="/qr" element={<BDQRCode />} />
         <Route path="/profile" element={<BDProfile />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
@@ -242,11 +306,11 @@ function RoleRouter({ role }) {
   );
 }
 
+/* ── Main App ── */
 export default function App() {
   const { userRole } = config;
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   if (
     !userRole ||
@@ -261,26 +325,7 @@ export default function App() {
 
   return (
     <HashRouter>
-      <Box sx={{ minHeight: "calc(100vh - 64px - 49px)" }}>
-        {/* Mobile floating menu button */}
-        {isMobile && (
-          <Fab
-            size="medium"
-            onClick={() => setMobileOpen(true)}
-            sx={{
-              position: "fixed",
-              bottom: 20,
-              left: 20,
-              zIndex: 1099,
-              backgroundColor: "#080726",
-              color: "#fff",
-              "&:hover": { backgroundColor: "#1a1a3e" },
-            }}
-          >
-            <MenuIcon />
-          </Fab>
-        )}
-
+      <Box sx={{ minHeight: "100vh" }}>
         <Box sx={{ display: "flex", flex: 1 }}>
           {/* Desktop sidebar — permanent */}
           {!isMobile && (
@@ -289,37 +334,12 @@ export default function App() {
             </Box>
           )}
 
-          {/* Mobile sidebar — slide-in drawer */}
-          <Drawer
-            anchor="left"
-            open={mobileOpen}
-            onClose={() => setMobileOpen(false)}
-            ModalProps={{ keepMounted: true }}
-            PaperProps={{
-              sx: {
-                width: SIDEBAR_WIDTH,
-                backgroundColor: "#080726",
-                border: "none",
-              },
-            }}
-          >
-            {/* Close button inside drawer */}
-            <Box sx={{ display: "flex", justifyContent: "flex-end", p: 1 }}>
-              <IconButton
-                onClick={() => setMobileOpen(false)}
-                sx={{ color: alpha("#fff", 0.6) }}
-              >
-                <CloseIcon />
-              </IconButton>
-            </Box>
-            <SidebarContent onNavigate={() => setMobileOpen(false)} />
-          </Drawer>
-
           {/* Main content */}
           <Box
             sx={{
               flex: 1,
               p: { xs: 2, md: 4 },
+              pb: isMobile ? `${BOTTOM_NAV_HEIGHT + 16}px` : 4,
               backgroundColor: "#F5F6FA",
               minWidth: 0,
               overflowX: "hidden",
@@ -330,6 +350,9 @@ export default function App() {
             <RoleRouter role={userRole} />
           </Box>
         </Box>
+
+        {/* Mobile bottom navigation */}
+        {isMobile && <MobileBottomNav />}
       </Box>
     </HashRouter>
   );

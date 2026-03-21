@@ -106,7 +106,7 @@ export default function BDProfile() {
   }
 
   return (
-    <Box sx={{ maxWidth: 800, mx: 'auto', p: 2 }}>
+    <Box sx={{ maxWidth: 800, mx: 'auto' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
         <Typography variant="h5">BD Profile</Typography>
         {profile.tracking_code && (

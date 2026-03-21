@@ -228,7 +228,7 @@ export default function ResellerDashboard() {
             <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase', letterSpacing: '0.1em' }}>
               Manager Dashboard
             </Typography>
-            <Typography variant="h4" sx={{ mt: 0.5 }}>
+            <Typography variant="h5" sx={{ mt: 0.5 }}>
               Organization Overview
             </Typography>
           </Box>
@@ -264,7 +264,7 @@ export default function ResellerDashboard() {
                   <Typography variant="body2" sx={{ color: alpha('#fff', 0.7), fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.7rem' }}>
                     Total Org Sales
                   </Typography>
-                  <Typography variant="h4" sx={{ color: '#fff', fontWeight: 700, mt: 1 }}>
+                  <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700, mt: 1 }}>
                     {(kpis.total_orders ?? 0).toLocaleString()}
                     <Typography component="span" sx={{ color: alpha('#fff', 0.7), ml: 0.5, fontSize: '0.9rem' }}>Orders</Typography>
                   </Typography>
@@ -287,7 +287,7 @@ export default function ResellerDashboard() {
                   <Typography variant="body2" sx={{ fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.7rem', color: 'text.secondary' }}>
                     Total Org Commission
                   </Typography>
-                  <Typography variant="h4" sx={{ fontWeight: 700, mt: 1, color: 'primary.main' }}>
+                  <Typography variant="h5" sx={{ fontWeight: 700, mt: 1, color: 'primary.main' }}>
                     RM {Number(kpis.total_sales_commission ?? 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
@@ -312,7 +312,7 @@ export default function ResellerDashboard() {
                   <Typography variant="body2" sx={{ fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.7rem', color: 'text.secondary' }}>
                     Active BD Count
                   </Typography>
-                  <Typography variant="h4" sx={{ fontWeight: 700, mt: 1, color: 'text.primary' }}>
+                  <Typography variant="h5" sx={{ fontWeight: 700, mt: 1, color: 'text.primary' }}>
                     {kpis.active_bd_count ?? 0}
                     <Typography component="span" sx={{ color: 'text.secondary', ml: 0.5, fontSize: '0.9rem' }}>Agents</Typography>
                   </Typography>
