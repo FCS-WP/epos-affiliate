@@ -7,16 +7,15 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Handles the QR → checkout flow.
  *
- * Instead of applying a WooCommerce coupon (which customers can see/remove),
  * BD attribution is stored silently in the WC session, then written directly
  * to order meta when the order is created. Nothing is visible to the customer.
  */
+use EposAffiliate\Services\Logger;
+
 class CheckoutService {
 
     public static function init() {
         add_action( 'template_redirect', [ self::class, 'handle_bd_redirect' ], 20 );
-
-        // Write BD attribution data to order meta at order creation.
         add_action( 'woocommerce_checkout_create_order', [ self::class, 'write_attribution_to_order' ], 10, 2 );
     }
 
@@ -32,18 +31,21 @@ class CheckoutService {
             return;
         }
 
-        // Only act on the bluetap product page.
         $request_uri = trim( $_SERVER['REQUEST_URI'], '/' );
         if ( strpos( $request_uri, 'my/bluetap' ) === false ) {
             return;
         }
 
-        // Check for BD tracking params (set by QRRedirectService).
         $bd_tracking = isset( $_GET['bd_tracking'] ) ? sanitize_text_field( wp_unslash( $_GET['bd_tracking'] ) ) : '';
 
         if ( empty( $bd_tracking ) ) {
             return;
         }
+
+        $bd_user_id  = absint( $_GET['bd_user_id'] ?? 0 );
+        $reseller_id = absint( $_GET['reseller_id'] ?? 0 );
+
+        Logger::info( "BD redirect triggered. Tracking: {$bd_tracking}, BD User: {$bd_user_id}, Reseller: {$reseller_id}", 'Checkout' );
 
         $settings   = get_option( 'epos_affiliate_settings', [] );
         $product_id = absint( $settings['product_id'] ?? 2174 );
@@ -54,10 +56,12 @@ class CheckoutService {
         // 2. Add product.
         WC()->cart->add_to_cart( $product_id, 1 );
 
+        Logger::info( "Cart prepared. Product: {$product_id}, Tracking: {$bd_tracking}", 'Checkout' );
+
         // 3. Store BD attribution in session (invisible to customer).
         WC()->session->set( 'epos_bd_tracking_code', $bd_tracking );
-        WC()->session->set( 'epos_bd_user_id', absint( $_GET['bd_user_id'] ?? 0 ) );
-        WC()->session->set( 'epos_reseller_id', absint( $_GET['reseller_id'] ?? 0 ) );
+        WC()->session->set( 'epos_bd_user_id', $bd_user_id );
+        WC()->session->set( 'epos_reseller_id', $reseller_id );
         WC()->session->set( 'epos_qr_sourced', 'yes' );
 
         // Store UTM params in session.
@@ -68,6 +72,8 @@ class CheckoutService {
             }
         }
 
+        Logger::info( "Session stored. Redirecting to checkout.", 'Checkout' );
+
         // 4. Redirect to checkout.
         wp_redirect( wc_get_checkout_url() );
         exit;
@@ -75,8 +81,7 @@ class CheckoutService {
 
     /**
      * Write BD attribution data directly to order meta at order creation.
-     * This is called during woocommerce_checkout_create_order, before the order is saved.
-     * The customer never sees any of this — it's all server-side.
+     * Also adds an order note so the admin can see BD attribution in order details.
      */
     public static function write_attribution_to_order( $order, $data ) {
         if ( ! WC()->session ) {
@@ -90,6 +95,8 @@ class CheckoutService {
         if ( ! $bd_tracking || ! $bd_user_id ) {
             return;
         }
+
+        Logger::info( "Writing attribution to order. Tracking: {$bd_tracking}, BD User: {$bd_user_id}, Reseller: {$reseller_id}", 'Checkout' );
 
         // Write BD attribution meta directly to the order.
         $order->update_meta_data( '_bd_coupon_code', sanitize_text_field( $bd_tracking ) );
@@ -111,6 +118,21 @@ class CheckoutService {
             }
         }
 
+        // Get BD name for the order note.
+        $bd_user = get_userdata( $bd_user_id );
+        $bd_name = $bd_user ? $bd_user->display_name : "User #{$bd_user_id}";
+
+        // Add order note (visible to admin in WooCommerce order details).
+        $note = sprintf(
+            '🔗 BD Attribution: This order was referred by %s (Tracking: %s). Reseller ID: %d. Source: QR Code.',
+            $bd_name,
+            $bd_tracking,
+            $reseller_id
+        );
+        $order->add_order_note( $note );
+
+        Logger::info( "Attribution meta + order note written. BD: {$bd_name}, Tracking: {$bd_tracking}", 'Checkout' );
+
         // Clear session data after writing to order.
         WC()->session->set( 'epos_bd_tracking_code', null );
         WC()->session->set( 'epos_bd_user_id', null );
@@ -120,4 +142,5 @@ class CheckoutService {
             WC()->session->set( $session_key, null );
         }
     }
+
 }

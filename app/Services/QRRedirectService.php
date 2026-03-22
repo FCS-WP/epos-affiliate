@@ -7,6 +7,7 @@ defined( 'ABSPATH' ) || exit;
 use EposAffiliate\Models\BD;
 use EposAffiliate\Models\Reseller;
 use EposAffiliate\Middleware\RateLimiter;
+use EposAffiliate\Services\Logger;
 
 class QRRedirectService {
 
@@ -16,18 +17,22 @@ class QRRedirectService {
 
     /**
      * Intercept /my/qr/[BD_TOKEN] and redirect to the bluetap page with BD params.
-     * No coupon is used — BD attribution is stored in session by CheckoutService.
      */
     public static function handle_qr_redirect() {
         $request_uri = trim( $_SERVER['REQUEST_URI'], '/' );
 
-        // Match pattern: my/qr/{token}
         if ( ! preg_match( '#^my/qr/([a-zA-Z0-9]+)$#', $request_uri, $matches ) ) {
             return;
         }
 
+        $token = sanitize_text_field( $matches[1] );
+        $ip    = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+
+        Logger::info( "QR scan received. Token: {$token}, IP: {$ip}", 'QR' );
+
         // Rate limit: 5 requests per IP per hour.
         if ( RateLimiter::is_limited( 'qr_redirect', 5, 3600 ) ) {
+            Logger::warning( "Rate limited. IP: {$ip}, Token: {$token}", 'QR' );
             wp_die(
                 esc_html__( 'Too many requests. Please try again later.', 'epos-affiliate' ),
                 esc_html__( 'Rate Limited', 'epos-affiliate' ),
@@ -35,10 +40,10 @@ class QRRedirectService {
             );
         }
 
-        $token = sanitize_text_field( $matches[1] );
-        $bd    = BD::find_by_token( $token );
+        $bd = BD::find_by_token( $token );
 
         if ( ! $bd || 'active' !== $bd->status ) {
+            Logger::warning( "Invalid/inactive BD. Token: {$token}, BD found: " . ( $bd ? "yes (status: {$bd->status})" : 'no' ), 'QR' );
             wp_die(
                 esc_html__( 'Invalid or expired QR code.', 'epos-affiliate' ),
                 esc_html__( 'QR Error', 'epos-affiliate' ),
@@ -50,7 +55,8 @@ class QRRedirectService {
         $settings   = get_option( 'epos_affiliate_settings', [] );
         $product_id = $settings['product_id'] ?? 2174;
 
-        // Pass BD info as query params — CheckoutService will pick these up and store in session.
+        Logger::info( "QR valid. BD: {$bd->name} (ID: {$bd->id}), Tracking: {$bd->tracking_code}, Reseller: " . ( $reseller ? $reseller->name : 'N/A' ) . ", Product: {$product_id}", 'QR' );
+
         $redirect_url = add_query_arg( [
             'add-to-cart'    => $product_id,
             'bd_token'       => $token,
@@ -66,4 +72,5 @@ class QRRedirectService {
         wp_redirect( esc_url_raw( $redirect_url ) );
         exit;
     }
+
 }
