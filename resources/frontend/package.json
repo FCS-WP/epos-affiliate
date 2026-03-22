@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "vite build && ENTRY=login vite build",
+    "build:main": "vite build",
+    "build:login": "ENTRY=login vite build"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

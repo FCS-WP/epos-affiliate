@@ -10,6 +10,7 @@ class LoginRedirect {
         add_filter( 'login_redirect', [ self::class, 'redirect_after_login' ], 10, 3 );
         add_filter( 'logout_redirect', [ self::class, 'redirect_after_logout' ], 10, 3 );
         add_action( 'admin_init', [ self::class, 'block_wp_admin' ] );
+        add_action( 'template_redirect', [ self::class, 'protect_dashboard_pages' ] );
     }
 
     /**
@@ -50,6 +51,50 @@ class LoginRedirect {
         }
 
         return $redirect_to;
+    }
+
+    /**
+     * If a non-logged-in user visits a dashboard page, redirect to the custom login page.
+     */
+    public static function protect_dashboard_pages() {
+        if ( is_user_logged_in() ) {
+            return;
+        }
+
+        // Check if current page uses the dashboard template.
+        global $post;
+        if ( ! $post ) {
+            return;
+        }
+
+        $template = get_page_template_slug( $post->ID );
+        if ( 'epos-affiliate-dashboard' !== $template ) {
+            return;
+        }
+
+        // Find the login page.
+        $login_url = self::get_custom_login_url();
+        if ( $login_url ) {
+            wp_redirect( $login_url );
+            exit;
+        }
+    }
+
+    /**
+     * Get the URL of the custom login page (page using the login template).
+     */
+    public static function get_custom_login_url() {
+        $pages = get_pages( [
+            'meta_key'   => '_wp_page_template',
+            'meta_value' => 'epos-affiliate-login',
+        ] );
+
+        if ( ! empty( $pages ) ) {
+            return get_permalink( $pages[0]->ID );
+        }
+
+        // Fallback to standard WP login.
+        return wp_login_url();
     }
 
     /**

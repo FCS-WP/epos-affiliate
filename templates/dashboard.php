@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Template Name: EPOS Affiliate Dashboard
  *
@@ -7,33 +8,34 @@
  * Only loads WordPress core + plugin assets for a clean MUI React app.
  */
 
-defined( 'ABSPATH' ) || exit;
+defined('ABSPATH') || exit;
 
-// Redirect to login if not authenticated.
-if ( ! is_user_logged_in() ) {
-    wp_redirect( wp_login_url( get_permalink() ) );
+// Redirect to custom login if not authenticated.
+if (! is_user_logged_in()) {
+    $login_url = \EposAffiliate\Setup\LoginRedirect::get_custom_login_url();
+    wp_redirect($login_url);
     exit;
 }
 
 // Check role permissions.
 $user = wp_get_current_user();
-$allowed_roles = [ 'administrator', 'reseller_manager', 'bd_agent' ];
+$allowed_roles = ['administrator', 'reseller_manager', 'bd_agent'];
 
-if ( ! array_intersect( $allowed_roles, $user->roles ) ) {
-    wp_redirect( home_url() );
+if (! array_intersect($allowed_roles, $user->roles)) {
+    wp_redirect(home_url());
     exit;
 }
 
 // Determine user role.
 $role = 'bd_agent';
-if ( in_array( 'administrator', $user->roles, true ) ) {
+if (in_array('administrator', $user->roles, true)) {
     $role = 'administrator';
-} elseif ( in_array( 'reseller_manager', $user->roles, true ) ) {
+} elseif (in_array('reseller_manager', $user->roles, true)) {
     $role = 'reseller_manager';
 }
 
 // Enqueue frontend assets.
-$version = EPOS_AFFILIATE_VERSION . '.' . filemtime( EPOS_AFFILIATE_PATH . 'dist/frontend/frontend.js' );
+$version = EPOS_AFFILIATE_VERSION . '.' . filemtime(EPOS_AFFILIATE_PATH . 'dist/frontend/frontend.js');
 
 wp_enqueue_script(
     'epos-affiliate-frontend',
@@ -44,7 +46,7 @@ wp_enqueue_script(
 );
 
 $css_file = EPOS_AFFILIATE_PATH . 'dist/frontend/frontend.css';
-if ( file_exists( $css_file ) ) {
+if (file_exists($css_file)) {
     wp_enqueue_style(
         'epos-affiliate-frontend',
         EPOS_AFFILIATE_URL . 'dist/frontend/frontend.css',
@@ -53,46 +55,51 @@ if ( file_exists( $css_file ) ) {
     );
 }
 
-wp_localize_script( 'epos-affiliate-frontend', 'eposAffiliate', [
-    'apiBase'  => esc_url_raw( rest_url( 'epos-affiliate/v1' ) ),
-    'nonce'    => wp_create_nonce( 'wp_rest' ),
+wp_localize_script('epos-affiliate-frontend', 'eposAffiliate', [
+    'apiBase'  => esc_url_raw(rest_url('epos-affiliate/v1')),
+    'nonce'    => wp_create_nonce('wp_rest'),
     'userId'   => get_current_user_id(),
     'userRole' => $role,
     'userName' => $user->display_name ?: $user->user_login,
     'logoUrl'  => EPOS_AFFILIATE_URL . 'assets/logo.svg',
     'homeUrl'  => home_url(),
-    'logoutUrl'=> wp_logout_url( home_url() ),
-] );
+    'logoutUrl' => wp_logout_url(home_url()),
+]);
 
 // Dashboard page title.
 $page_title = 'EPOS Dashboard';
-if ( $role === 'reseller_manager' ) {
+if ($role === 'reseller_manager') {
     $page_title = 'EPOS Reseller Portal';
-} elseif ( $role === 'bd_agent' ) {
+} elseif ($role === 'bd_agent') {
     $page_title = 'EPOS Sales Agent Portal';
 }
 
-?><!DOCTYPE html>
+?>
+<!DOCTYPE html>
 <html <?php language_attributes(); ?>>
+
 <head>
-    <meta charset="<?php bloginfo( 'charset' ); ?>">
+    <meta charset="<?php bloginfo('charset'); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo esc_html( $page_title ); ?></title>
+    <title><?php echo esc_html($page_title); ?></title>
 
     <?php
     // Only print our enqueued styles (no theme styles).
-    wp_print_styles( [ 'epos-affiliate-frontend' ] );
+    wp_print_styles(['epos-affiliate-frontend']);
     ?>
 
     <style>
         /* ── Base reset for clean MUI rendering ── */
-        *, *::before, *::after {
+        *,
+        *::before,
+        *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
 
-        html, body {
+        html,
+        body {
             height: 100%;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: #F5F6FA;
@@ -120,7 +127,7 @@ if ( $role === 'reseller_manager' ) {
             position: sticky;
             top: 0;
             z-index: 1100;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
 
         .epos-header__left {
@@ -148,7 +155,7 @@ if ( $role === 'reseller_manager' ) {
 
         .epos-header__user {
             font-size: 0.85rem;
-            color: rgba(255,255,255,0.8);
+            color: rgba(255, 255, 255, 0.8);
         }
 
         .epos-header__user strong {
@@ -156,19 +163,19 @@ if ( $role === 'reseller_manager' ) {
         }
 
         .epos-header__logout {
-            color: rgba(255,255,255,0.7);
+            color: rgba(255, 255, 255, 0.7);
             text-decoration: none;
             font-size: 0.8rem;
             padding: 6px 14px;
-            border: 1px solid rgba(255,255,255,0.25);
+            border: 1px solid rgba(255, 255, 255, 0.25);
             border-radius: 6px;
             transition: all 0.2s;
         }
 
         .epos-header__logout:hover {
             color: #ffffff;
-            border-color: rgba(255,255,255,0.5);
-            background-color: rgba(255,255,255,0.08);
+            border-color: rgba(255, 255, 255, 0.5);
+            background-color: rgba(255, 255, 255, 0.08);
         }
 
         /* ── Main content area ── */
@@ -181,14 +188,14 @@ if ( $role === 'reseller_manager' ) {
         /* ── Footer ── */
         .epos-footer {
             background-color: #080726;
-            color: rgba(255,255,255,0.5);
+            color: rgba(255, 255, 255, 0.5);
             text-align: center;
             padding: 16px 24px;
             font-size: 0.75rem;
         }
 
         .epos-footer a {
-            color: rgba(255,255,255,0.7);
+            color: rgba(255, 255, 255, 0.7);
             text-decoration: none;
         }
 
@@ -202,12 +209,15 @@ if ( $role === 'reseller_manager' ) {
                 padding: 0 16px;
                 height: 56px;
             }
+
             .epos-header__title {
                 font-size: 0.95rem;
             }
+
             .epos-main {
                 padding: 16px;
             }
+
             .epos-header__user {
                 display: none;
             }
@@ -215,33 +225,44 @@ if ( $role === 'reseller_manager' ) {
 
         /* ── Print ── */
         @media print {
-            .epos-header, .epos-footer {
+
+            .epos-header,
+            .epos-footer {
                 display: none;
             }
+
             .epos-main {
                 padding: 0;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="epos-page">
 
         <!-- ── Header ── -->
         <header class="epos-header">
             <div class="epos-header__left">
-                <svg class="epos-header__logo" viewBox="0 0 120 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <text x="0" y="24" font-family="Inter, sans-serif" font-size="22" font-weight="800" fill="#2EAF7D">EPOS</text>
+                <svg xmlns="http://www.w3.org/2000/svg" width="150" height="32" viewBox="0 0 220 32" fill="none">
+                    <path d="M75.8526 1.79883C82.3336 1.79883 86.289 5.6112 86.289 11.2821C86.289 16.953 82.3336 20.7653 75.8526 20.7653H68.9904C68.6568 20.7653 68.4185 21.0036 68.4185 21.3372V29.4384C68.4185 29.7244 68.1803 30.0103 67.8467 30.0103H63.2242C62.8906 30.0103 62.6523 29.772 62.6523 29.4384V2.37069C62.6523 2.08476 62.8906 1.79883 63.2242 1.79883H75.805H75.8526ZM75.8526 15.571C78.9025 15.571 80.6181 13.8554 80.6181 11.2344C80.6181 8.61343 78.9502 6.94552 75.8526 6.94552H68.9904C68.6568 6.94552 68.4185 7.18379 68.4185 7.51737V15.0468C68.4185 15.3327 68.6568 15.6186 68.9904 15.6186H75.8526V15.571Z" fill="#ffffff"></path>
+                    <path d="M103.397 30.1058C95.5341 30.1058 89.1484 23.7201 89.1484 15.8571C89.1484 7.9941 95.5341 1.6084 103.397 1.6084C111.26 1.6084 117.646 7.9941 117.646 15.8571C117.646 23.7201 111.26 30.1058 103.397 30.1058ZM103.397 7.51756C98.7746 7.51756 95.0099 11.2823 95.0099 15.9048C95.0099 20.5272 98.7746 24.292 103.397 24.292C108.02 24.292 111.784 20.5272 111.784 15.9048C111.784 11.2823 108.02 7.51756 103.397 7.51756Z" fill="#ffffff"></path>
+                    <path d="M166.732 16.1907C166.16 15.7618 165.541 15.4759 164.874 15.2376C164.731 15.2376 164.731 14.9993 164.874 14.9517C165.398 14.7134 165.874 14.4275 166.351 14.0462C167.066 13.4744 167.685 12.7595 168.114 11.9018C168.543 11.044 168.781 10.0432 168.781 8.94718C168.781 7.85113 168.4 6.32619 167.685 5.18248C166.97 4.03877 165.874 3.08569 164.445 2.41852C163.063 1.7037 161.3 1.37012 159.298 1.37012C157.297 1.37012 155.676 1.7037 154.199 2.37086C152.722 3.03803 151.578 4.03878 150.72 5.32545C149.958 6.46916 149.529 7.80348 149.386 9.32843C149.386 9.37608 149.386 9.51904 149.386 9.662C149.386 9.90027 149.577 10.0909 149.815 10.0909H154.58C154.914 10.0909 155.152 9.85263 155.2 9.5667V9.47138C155.343 8.6136 155.676 7.89879 156.296 7.32693C157.011 6.61211 158.011 6.27854 159.25 6.27854C160.489 6.27854 161.3 6.56446 161.967 7.13632C162.586 7.70817 162.92 8.47065 162.92 9.37608C162.92 10.2815 162.491 11.3776 161.633 11.9971C160.775 12.5689 159.632 12.9025 158.297 12.9025H156.486C156.201 12.9025 155.962 13.1408 155.962 13.4267V17.1438C155.962 17.4297 156.201 17.668 156.486 17.668H158.297C159.346 17.668 160.299 17.8109 161.109 18.1445C161.919 18.4304 162.539 18.907 162.967 19.4788C163.396 20.0507 163.635 20.8132 163.635 21.6709C163.635 22.5287 163.444 23.1006 163.11 23.6724C162.777 24.2443 162.253 24.7208 161.633 25.0544C160.966 25.388 160.203 25.5786 159.25 25.5786C158.297 25.5786 157.44 25.388 156.772 25.0068C156.058 24.6255 155.533 24.1013 155.152 23.4342C154.866 22.91 154.676 22.3381 154.58 21.7186C154.58 21.6709 154.58 21.6233 154.58 21.528C154.58 21.2421 154.294 21.0038 153.961 21.0038H149.148C148.909 21.0038 148.719 21.1944 148.719 21.4327C148.719 21.6233 148.719 21.8139 148.719 21.9092C148.862 23.6724 149.338 25.1497 150.196 26.3887C151.149 27.7707 152.436 28.7715 154.008 29.4386C155.581 30.1058 157.344 30.4394 159.203 30.4394C161.061 30.4394 163.253 30.0581 164.778 29.248C166.303 28.4855 167.447 27.4371 168.209 26.1028C168.972 24.8161 169.401 23.3865 169.401 21.8139C169.401 20.2413 169.163 19.4788 168.686 18.5257C168.209 17.5727 167.542 16.8102 166.732 16.1907Z" fill="#ffffff"></path>
+                    <path d="M219.391 11.5681C219.391 11.3775 219.391 11.1869 219.391 10.9963C219.391 10.8533 219.391 10.758 219.391 10.6627C219.295 8.99479 218.819 7.46985 218.104 6.18318C217.198 4.65823 215.959 3.41921 214.339 2.56143C214.196 2.46612 214.006 2.37081 213.815 2.32316C213.815 2.32316 213.815 2.32316 213.767 2.32316C213.672 2.32316 213.577 2.22786 213.529 2.22786C213.386 2.1802 213.243 2.13254 213.148 2.08488C213.1 2.08488 213.005 2.03724 212.957 1.98958C212.814 1.94193 212.624 1.89427 212.481 1.84661C212.433 1.84661 212.385 1.84661 212.338 1.84661C212.147 1.79896 211.956 1.75131 211.766 1.70365H211.671C211.432 1.70365 211.242 1.60834 211.003 1.56068C211.003 1.56068 210.956 1.56068 210.908 1.56068C210.67 1.56068 210.432 1.51304 210.193 1.46538C210.193 1.46538 210.193 1.46538 210.146 1.46538C209.907 1.46538 209.621 1.41772 209.383 1.41772C209.145 1.41772 208.859 1.41772 208.621 1.41772C207.096 1.41772 205.571 1.65599 204.284 2.08488C203.76 2.2755 203.236 2.46613 202.807 2.7044C201.33 3.51453 200.138 4.61058 199.28 5.99256C199.185 6.08787 199.137 6.23082 199.042 6.32613C199.042 6.37379 198.994 6.42145 198.947 6.46911C198.089 7.9464 197.66 9.70961 197.66 11.7111V20.2413C197.66 20.4319 197.66 20.6225 197.66 20.8131C197.66 20.9561 197.66 21.0514 197.66 21.1467C197.755 22.8146 198.232 24.3395 198.947 25.6262C199.852 27.1512 201.091 28.3902 202.712 29.248C202.854 29.3433 203.045 29.4386 203.236 29.4862C203.331 29.4862 203.426 29.5815 203.522 29.5815C203.665 29.6292 203.76 29.6769 203.903 29.7245C203.998 29.7245 204.046 29.7721 204.094 29.8198C204.236 29.8675 204.427 29.9151 204.57 29.9628C204.618 29.9628 204.665 29.9628 204.713 29.9628C204.904 30.0104 205.094 30.0581 205.285 30.1057H205.38C205.571 30.1057 205.809 30.201 206.047 30.2487C206.047 30.2487 206.095 30.2487 206.143 30.2487C206.381 30.2487 206.619 30.2964 206.857 30.344C206.857 30.344 206.857 30.344 206.905 30.344C207.143 30.344 207.429 30.3917 207.668 30.3917C207.906 30.3917 208.192 30.3917 208.43 30.3917C209.955 30.3917 211.48 30.1534 212.814 29.7245C213.338 29.5339 213.863 29.3433 214.292 29.105C215.769 28.2949 216.96 27.1988 217.818 25.8168C217.866 25.7215 217.961 25.5786 218.009 25.4833C218.009 25.4356 218.056 25.3879 218.104 25.3403C218.962 23.863 219.343 22.0998 219.343 20.0983V11.5681H219.391ZM212.91 22.8623C212.481 23.5771 211.909 24.1489 211.146 24.5302C210.86 24.6731 210.575 24.8161 210.289 24.9114C210.289 24.9114 210.193 24.9114 210.146 24.9114C209.955 24.959 209.764 25.0067 209.574 25.0544C209.526 25.0544 209.431 25.0544 209.383 25.0544C209.335 25.0544 209.24 25.0544 209.193 25.0544C209.05 25.0544 208.621 25.0544 208.478 25.0544C207.572 25.0544 206.476 24.8637 205.714 24.4348C204.999 24.006 204.379 23.4341 203.951 22.7669C203.522 22.0998 203.331 21.2896 203.331 20.3842V11.0916C203.331 10.2338 203.522 9.42368 203.951 8.70886C204.379 7.99404 204.951 7.42219 205.714 7.04095C206 6.89799 206.286 6.75503 206.572 6.65972C206.572 6.65972 206.667 6.65972 206.715 6.65972C206.905 6.61207 207.096 6.56442 207.286 6.51676C207.334 6.51676 207.429 6.51676 207.477 6.51676C207.525 6.51676 207.62 6.51676 207.668 6.51676C207.811 6.51676 208.239 6.51676 208.382 6.51676C209.288 6.51676 210.384 6.70738 211.099 7.13627C211.814 7.56516 212.433 8.13701 212.862 8.80417C213.291 9.51899 213.481 10.2815 213.481 11.1869V20.4795C213.481 21.3373 213.243 22.1474 212.862 22.8623H212.91Z" fill="#ffffff"></path>
+                    <path d="M183.268 10.2337C183.172 10.2337 183.029 10.2337 182.886 10.2337C183.554 9.23296 187.318 3.51442 188.176 2.32306C188.414 1.98948 188.176 1.51294 187.747 1.51294H182.791C182.314 1.51294 181.886 1.70355 181.647 2.08478C180.218 4.18158 179.122 5.65887 175.548 11.8063C174.213 14.0937 173.546 15.9046 173.212 16.953C172.831 18.0014 172.641 19.0974 172.641 20.2412C172.641 25.8644 177.406 30.4392 183.22 30.4392C189.034 30.4392 193.799 25.8644 193.799 20.2412C193.799 14.6179 189.034 10.2337 183.172 10.2337H183.268ZM183.315 25.0066C180.599 25.0066 178.407 22.9098 178.407 20.2888C178.407 17.6678 180.599 15.571 183.315 15.571C186.032 15.571 188.224 17.6678 188.224 20.2888C188.224 22.9098 186.032 25.0066 183.315 25.0066Z" fill="#ffffff"></path>
+                    <path d="M132.514 30.3917C130.179 30.3917 126.748 29.9151 124.318 28.1519C122.364 26.7223 120.791 24.5302 120.41 21.5279C120.41 21.1944 120.601 20.9084 120.982 20.9084H126.129C126.415 20.9084 126.605 21.099 126.701 21.385C127.463 24.7208 129.989 25.3879 132.324 25.4356C134.421 25.4356 137.375 24.7684 137.518 22.0998C137.661 19.3358 134.325 18.5257 132.371 18.0015L132.038 17.9062C131.514 17.7632 130.989 17.6203 130.465 17.4773C129.703 17.2867 128.94 17.0484 128.178 16.8578C123.651 15.6188 121.459 12.6165 121.459 9.42368C121.459 4.80119 125.652 1.41772 131.895 1.41772C138.138 1.41772 142.236 4.84885 143.046 9.47133C143.094 9.80492 142.855 10.1385 142.474 10.1385H137.613C137.375 10.1385 137.137 9.94788 137.089 9.70961C135.946 6.37379 133.229 6.32614 131.561 6.27849C129.369 6.27849 127.272 7.5175 127.272 9.28072C127.272 11.0439 129.989 12.14 131.323 12.5689C132.038 12.8071 132.8 12.9501 133.563 13.1884C133.992 13.3314 134.421 13.4743 134.897 13.6173C139.853 15.0469 143.332 16.7148 143.332 22.0998C143.332 27.4847 137.518 30.63 132.61 30.4393L132.514 30.3917Z" fill="#ffffff"></path>
+                    <path d="M57.1258 29.9627H36.8726C36.5391 29.9627 36.3008 29.7244 36.3008 29.3908V2.37069C36.3008 2.03711 36.5391 1.79883 36.8726 1.79883H57.0305C57.3641 1.79883 57.6024 2.03711 57.6024 2.37069V6.37366C57.6024 6.70725 57.3641 6.94552 57.0305 6.94552H42.5912C42.2576 6.94552 42.0193 7.18379 42.0193 7.51737V12.7117C42.0193 13.0453 42.2576 13.2836 42.5912 13.2836H55.8391C56.1727 13.2836 56.411 13.5218 56.411 13.8554V17.8107C56.411 18.1443 56.1727 18.3826 55.8391 18.3826H42.5912C42.2576 18.3826 42.0193 18.6209 42.0193 18.9545V24.1964C42.0193 24.53 42.2576 24.7683 42.5912 24.7683H57.1258C57.4594 24.7683 57.6977 25.0066 57.6977 25.3402V29.3431C57.6977 29.6767 57.4594 29.915 57.1258 29.915V29.9627Z" fill="#ffffff"></path>
+                    <path d="M31.869 16.4289L16.6195 31.8213C16.3812 32.0596 16.0476 32.0596 15.8094 31.8213L0.178704 16.6195C-0.0595681 16.3812 -0.0595681 16.0477 0.178704 15.8094L15.8094 0.178704C16.0476 -0.0595681 16.3812 -0.0595681 16.6195 0.178704L25.6739 9.28072C25.9121 9.51899 25.9121 9.85258 25.6739 10.0909L16.5242 19.2405C16.2859 19.4788 15.9523 19.4788 15.7141 19.2405L12.9025 16.4289C12.6642 16.1906 12.6642 15.857 12.9025 15.6188L18.6686 9.85258C18.764 9.75727 18.764 9.56664 18.6686 9.47133L16.4289 7.18392C16.3336 7.08861 16.143 7.08861 16.0476 7.18392L7.23157 16C7.13626 16.0953 7.13626 16.2859 7.23157 16.3812L16.0476 24.9114C16.143 25.0067 16.3336 25.0067 16.4289 24.9114L28.2472 12.8071C28.4855 12.5689 28.8191 12.5689 29.0573 12.8071L31.869 15.6188C32.1072 15.857 32.1072 16.1906 31.869 16.4289Z" fill="#ffffff"></path>
                 </svg>
-                <span class="epos-header__title"><?php echo esc_html( $page_title ); ?></span>
+                <!-- <span class="epos-header__title"><?php echo esc_html($page_title); ?></span> -->
             </div>
             <div class="epos-header__right">
                 <span class="epos-header__user">
-                    <?php echo esc_html__( 'Welcome,', 'epos-affiliate' ); ?>
-                    <strong><?php echo esc_html( $user->display_name ?: $user->user_login ); ?></strong>
+                    <?php echo esc_html__('Welcome,', 'epos-affiliate'); ?>
+                    <strong><?php echo esc_html($user->display_name ?: $user->user_login); ?></strong>
                 </span>
-                <a href="<?php echo esc_url( wp_logout_url( home_url() ) ); ?>" class="epos-header__logout">
-                    <?php echo esc_html__( 'Logout', 'epos-affiliate' ); ?>
+                <a href="<?php echo esc_url(wp_logout_url(home_url())); ?>" class="epos-header__logout">
+                    <?php echo esc_html__('Logout', 'epos-affiliate'); ?>
                 </a>
             </div>
         </header>
@@ -253,11 +274,11 @@ if ( $role === 'reseller_manager' ) {
 
         <!-- ── Footer ── -->
         <footer class="epos-footer">
-            &copy; <?php echo esc_html( gmdate( 'Y' ) ); ?> EPOS.
-            <?php echo esc_html__( 'All rights reserved.', 'epos-affiliate' ); ?>
+            &copy; <?php echo esc_html(gmdate('Y')); ?> EPOS.
+            <?php echo esc_html__('All rights reserved.', 'epos-affiliate'); ?>
             &nbsp;&middot;&nbsp;
-            <a href="<?php echo esc_url( home_url() ); ?>">
-                <?php echo esc_html__( 'Back to EPOS', 'epos-affiliate' ); ?>
+            <a href="<?php echo esc_url(home_url()); ?>">
+                <?php echo esc_html__('Back to EPOS', 'epos-affiliate'); ?>
             </a>
         </footer>
 
@@ -265,7 +286,8 @@ if ( $role === 'reseller_manager' ) {
 
     <?php
     // Only print our enqueued scripts (no theme scripts).
-    wp_print_scripts( [ 'epos-affiliate-frontend' ] );
+    wp_print_scripts(['epos-affiliate-frontend']);
     ?>
 </body>
+
 </html>

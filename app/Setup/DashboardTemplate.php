@@ -16,7 +16,8 @@ defined( 'ABSPATH' ) || exit;
  */
 class DashboardTemplate {
 
-    const TEMPLATE_SLUG = 'epos-affiliate-dashboard';
+    const TEMPLATE_SLUG       = 'epos-affiliate-dashboard';
+    const LOGIN_TEMPLATE_SLUG = 'epos-affiliate-login';
 
     public static function init() {
         // Register the template in the page attributes dropdown.
@@ -30,7 +31,8 @@ class DashboardTemplate {
      * Add our template to the page template dropdown in the editor.
      */
     public static function register_template( $templates, $theme, $post ) {
-        $templates[ self::TEMPLATE_SLUG ] = __( 'EPOS Affiliate Dashboard', 'epos-affiliate' );
+        $templates[ self::TEMPLATE_SLUG ]       = __( 'EPOS Affiliate Dashboard', 'epos-affiliate' );
+        $templates[ self::LOGIN_TEMPLATE_SLUG ] = __( 'EPOS Affiliate Login', 'epos-affiliate' );
         return $templates;
     }
 
@@ -46,14 +48,18 @@ class DashboardTemplate {
 
         $page_template = get_page_template_slug( $post->ID );
 
-        if ( self::TEMPLATE_SLUG !== $page_template ) {
-            return $template;
+        if ( self::TEMPLATE_SLUG === $page_template ) {
+            $plugin_template = EPOS_AFFILIATE_PATH . 'templates/dashboard.php';
+            if ( file_exists( $plugin_template ) ) {
+                return $plugin_template;
+            }
         }
 
-        $plugin_template = EPOS_AFFILIATE_PATH . 'templates/dashboard.php';
-
-        if ( file_exists( $plugin_template ) ) {
-            return $plugin_template;
+        if ( self::LOGIN_TEMPLATE_SLUG === $page_template ) {
+            $plugin_template = EPOS_AFFILIATE_PATH . 'templates/login.php';
+            if ( file_exists( $plugin_template ) ) {
+                return $plugin_template;
+            }
         }
 
         return $template;
