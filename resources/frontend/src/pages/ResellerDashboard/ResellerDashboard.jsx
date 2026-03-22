@@ -36,6 +36,7 @@ import api from '../../api/client';
 import StatusChip from '../../components/StatusChip';
 
 const config = window.eposAffiliate || {};
+const cs = config.currencySymbol || 'RM';
 
 export default function ResellerDashboard() {
   const theme = useTheme();
@@ -161,7 +162,7 @@ export default function ResellerDashboard() {
     },
     {
       field: 'revenue',
-      headerName: 'REVENUE (RM)',
+      headerName: `REVENUE (${cs})`,
       flex: 1,
       minWidth: 140,
       type: 'number',
@@ -292,7 +293,7 @@ export default function ResellerDashboard() {
                 Revenue
               </Typography>
               <Typography variant="body1" fontWeight={700} color="secondary">
-                RM {Number(revenue).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+                {cs} {Number(revenue).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
               </Typography>
             </Box>
           </Box>
@@ -360,7 +361,7 @@ export default function ResellerDashboard() {
                     <Typography component="span" sx={{ color: alpha('#fff', 0.7), ml: 0.5, fontSize: '0.9rem' }}>Orders</Typography>
                   </Typography>
                   <Typography variant="body2" sx={{ color: alpha('#fff', 0.8), mt: 0.5 }}>
-                    RM {Number(kpis.total_revenue ?? 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+                    {cs} {Number(kpis.total_revenue ?? 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
                   </Typography>
                 </Box>
                 <Box sx={{ width: 44, height: 44, borderRadius: '50%', backgroundColor: alpha('#fff', 0.15), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -379,7 +380,7 @@ export default function ResellerDashboard() {
                     Total Org Commission
                   </Typography>
                   <Typography variant="h5" sx={{ fontWeight: 700, mt: 1, color: 'primary.main' }}>
-                    RM {Number(kpis.total_sales_commission ?? 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+                    {cs} {Number(kpis.total_sales_commission ?? 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
                     <TrendingUpIcon sx={{ fontSize: 14, color: 'secondary.main' }} />

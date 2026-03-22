@@ -29,6 +29,7 @@ import api from '../../api/client';
 import StatusChip from '../../components/StatusChip';
 
 const config = window.eposAffiliate || {};
+const cs = config.currencySymbol || 'RM';
 
 export default function BDDashboard() {
   const theme = useTheme();
@@ -82,20 +83,20 @@ export default function BDDashboard() {
     },
     {
       label: 'Pending Commission',
-      value: `RM ${Number(kpis.commission_pending ?? 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}`,
+      value: `${cs} ${Number(kpis.commission_pending ?? 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}`,
       icon: <HourglassBottomIcon />,
       sub: 'Awaiting verification',
     },
     {
       label: 'Paid Commission',
-      value: `RM ${Number(kpis.commission_paid ?? 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}`,
+      value: `${cs} ${Number(kpis.commission_paid ?? 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}`,
       icon: <AttachMoneyIcon />,
       sub: 'Lifetime earnings',
       color: 'secondary',
     },
     {
       label: 'Usage Bonus',
-      value: `RM ${Number(kpis.usage_bonus_current ?? 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}`,
+      value: `${cs} ${Number(kpis.usage_bonus_current ?? 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}`,
       icon: <StarIcon />,
       sub: 'Est. next payout',
       color: 'secondary',
@@ -122,13 +123,13 @@ export default function BDDashboard() {
     },
     {
       field: 'value',
-      headerName: 'VALUE (RM)',
+      headerName: `VALUE (${cs})`,
       width: 150,
       headerAlign: 'left',
       align: 'left',
       renderCell: (params) => (
         <Typography variant="body2" fontWeight={500}>
-          RM {Number(params.value).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+          {cs} {Number(params.value).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
         </Typography>
       ),
     },
@@ -140,7 +141,7 @@ export default function BDDashboard() {
       align: 'left',
       renderCell: (params) => (
         <Typography variant="body2" fontWeight={600} color="secondary">
-          RM {Number(params.value).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+          {cs} {Number(params.value).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
         </Typography>
       ),
     },
@@ -177,7 +178,7 @@ export default function BDDashboard() {
               Value
             </Typography>
             <Typography variant="body1" fontWeight={700}>
-              RM {Number(order.value).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+              {cs} {Number(order.value).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
             </Typography>
           </Box>
           <Box>
@@ -185,7 +186,7 @@ export default function BDDashboard() {
               Commission
             </Typography>
             <Typography variant="body1" fontWeight={700} color="secondary">
-              RM {Number(order.commission).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+              {cs} {Number(order.commission).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
             </Typography>
           </Box>
         </Box>

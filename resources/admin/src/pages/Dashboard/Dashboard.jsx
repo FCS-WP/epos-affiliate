@@ -26,6 +26,7 @@ import api from '../../api/client';
 import StatusChip from '../../components/StatusChip';
 
 const config = window.eposAffiliate || {};
+const cs = config.currencySymbol || 'RM';
 
 export default function Dashboard() {
   const theme = useTheme();
@@ -70,7 +71,7 @@ export default function Dashboard() {
                 Total System Revenue
               </Typography>
               <Typography variant="h5" sx={{ fontWeight: 700, mt: 1 }}>
-                RM {Number(kpis.total_revenue || 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+                {cs} {Number(kpis.total_revenue || 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
                 <TrendingUpIcon sx={{ fontSize: 14, color: 'secondary.main' }} />
@@ -125,7 +126,7 @@ export default function Dashboard() {
                 Pending Payouts
               </Typography>
               <Typography variant="h5" sx={{ fontWeight: 700, mt: 1, color: '#fff' }}>
-                RM {Number(kpis.pending_payouts || 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+                {cs} {Number(kpis.pending_payouts || 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
               </Typography>
               <Button
                 size="small"
@@ -181,7 +182,7 @@ export default function Dashboard() {
                   tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}
                 />
                 <RechartsTooltip
-                  formatter={(value) => [`RM ${Number(value).toLocaleString('en-MY', { minimumFractionDigits: 2 })}`, 'Revenue']}
+                  formatter={(value) => [`${cs} ${Number(value).toLocaleString('en-MY', { minimumFractionDigits: 2 })}`, 'Revenue']}
                   labelFormatter={(label) => dayjs(label).format('MMM DD, YYYY')}
                   contentStyle={{
                     borderRadius: 8,
@@ -217,7 +218,7 @@ export default function Dashboard() {
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
                     <Typography variant="body2" fontWeight={600}>{reseller.name}</Typography>
                     <Typography variant="body2" fontWeight={700} color="primary">
-                      RM {Number(reseller.revenue).toLocaleString('en-MY', { minimumFractionDigits: 0 })}
+                      {cs} {Number(reseller.revenue).toLocaleString('en-MY', { minimumFractionDigits: 0 })}
                     </Typography>
                   </Box>
                   <LinearProgress
@@ -321,7 +322,7 @@ export default function Dashboard() {
                   <th>Order ID</th>
                   <th>BD Name</th>
                   <th>Reseller</th>
-                  <th>Value (RM)</th>
+                  <th>Value ({cs})</th>
                   <th>Status</th>
                 </tr>
               </thead>
@@ -346,7 +347,7 @@ export default function Dashboard() {
                     </td>
                     <td>
                       <Typography variant="body2" fontWeight={600} color="secondary">
-                        RM {Number(tx.value).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+                        {cs} {Number(tx.value).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
                       </Typography>
                     </td>
                     <td>

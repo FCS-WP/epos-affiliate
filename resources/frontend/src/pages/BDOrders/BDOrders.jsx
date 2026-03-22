@@ -22,6 +22,8 @@ import dayjs from "dayjs";
 import api from "../../api/client";
 import StatusChip from "../../components/StatusChip";
 
+const cs = (window.eposAffiliate || {}).currencySymbol || 'RM';
+
 export default function BDOrders() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -105,7 +107,7 @@ export default function BDOrders() {
     },
     {
       field: "value",
-      headerName: "VALUE (RM)",
+      headerName: `VALUE (${cs})`,
       width: 150,
       headerAlign: "left",
       align: "left",

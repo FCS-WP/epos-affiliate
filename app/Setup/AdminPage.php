@@ -154,12 +154,14 @@ class AdminPage {
         }
 
         wp_localize_script( 'epos-affiliate-admin', 'eposAffiliate', [
-            'apiBase'     => esc_url_raw( rest_url( 'epos-affiliate/v1' ) ),
-            'nonce'       => wp_create_nonce( 'wp_rest' ),
-            'userId'      => get_current_user_id(),
-            'userRole'    => self::get_current_role(),
-            'currentPage' => self::get_current_page(),
-            'adminUrl'    => admin_url( 'admin.php' ),
+            'apiBase'        => esc_url_raw( rest_url( 'epos-affiliate/v1' ) ),
+            'nonce'          => wp_create_nonce( 'wp_rest' ),
+            'userId'         => get_current_user_id(),
+            'userRole'       => self::get_current_role(),
+            'currentPage'    => self::get_current_page(),
+            'adminUrl'       => admin_url( 'admin.php' ),
+            'currency'       => function_exists( 'get_woocommerce_currency' ) ? get_woocommerce_currency() : 'MYR',
+            'currencySymbol' => function_exists( 'get_woocommerce_currency_symbol' ) ? get_woocommerce_currency_symbol() : 'RM',
         ] );
     }
 

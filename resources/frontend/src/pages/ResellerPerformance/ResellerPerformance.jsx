@@ -29,6 +29,8 @@ import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import dayjs from 'dayjs';
 import api from '../../api/client';
 
+const cs = (window.eposAffiliate || {}).currencySymbol || 'RM';
+
 export default function ResellerPerformance() {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -147,25 +149,25 @@ export default function ResellerPerformance() {
     },
     {
       field: 'revenue',
-      headerName: 'REVENUE (RM)',
+      headerName: `REVENUE (${cs})`,
       width: 160,
       headerAlign: 'left',
       align: 'left',
       renderCell: (params) => (
         <Typography variant="body2" fontWeight={700} color="secondary">
-          RM {Number(params.value || 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+          {cs} {Number(params.value || 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
         </Typography>
       ),
     },
     {
       field: 'sales_commission',
-      headerName: 'COMMISSION (RM)',
+      headerName: `COMMISSION (${cs})`,
       width: 160,
       headerAlign: 'left',
       align: 'left',
       renderCell: (params) => (
         <Typography variant="body2" fontWeight={600}>
-          RM {Number(params.value || 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+          {cs} {Number(params.value || 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
         </Typography>
       ),
     },
@@ -302,7 +304,7 @@ export default function ResellerPerformance() {
                 Revenue
               </Typography>
               <Typography variant="body1" fontWeight={700} color="secondary">
-                RM {Number(revenue).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+                {cs} {Number(revenue).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
               </Typography>
             </Box>
             <Box>
@@ -310,7 +312,7 @@ export default function ResellerPerformance() {
                 Commission
               </Typography>
               <Typography variant="body1" fontWeight={700}>
-                RM {Number(bd.sales_commission || 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+                {cs} {Number(bd.sales_commission || 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
               </Typography>
             </Box>
           </Box>

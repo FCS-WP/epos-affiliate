@@ -25,6 +25,8 @@ import dayjs from 'dayjs';
 import api from '../../api/client';
 import StatusChip from '../../components/StatusChip';
 
+const cs = (window.eposAffiliate || {}).currencySymbol || 'RM';
+
 export default function ResellerBDOrders() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -91,13 +93,13 @@ export default function ResellerBDOrders() {
     },
     {
       field: 'value',
-      headerName: 'VALUE (RM)',
+      headerName: `VALUE (${cs})`,
       width: 150,
       headerAlign: 'left',
       align: 'left',
       renderCell: (params) => (
         <Typography variant="body2" fontWeight={500}>
-          RM {Number(params.value).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+          {cs} {Number(params.value).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
         </Typography>
       ),
     },
@@ -109,7 +111,7 @@ export default function ResellerBDOrders() {
       align: 'left',
       renderCell: (params) => (
         <Typography variant="body2" fontWeight={600} color="secondary">
-          RM {Number(params.value).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+          {cs} {Number(params.value).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
         </Typography>
       ),
     },
@@ -145,7 +147,7 @@ export default function ResellerBDOrders() {
               Value
             </Typography>
             <Typography variant="body1" fontWeight={700}>
-              RM {Number(order.value).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+              {cs} {Number(order.value).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
             </Typography>
           </Box>
           <Box>
@@ -153,7 +155,7 @@ export default function ResellerBDOrders() {
               Commission
             </Typography>
             <Typography variant="body1" fontWeight={700} color="secondary">
-              RM {Number(order.commission).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+              {cs} {Number(order.commission).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
             </Typography>
           </Box>
         </Box>

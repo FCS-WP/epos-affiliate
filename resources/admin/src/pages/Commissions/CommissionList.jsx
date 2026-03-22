@@ -20,6 +20,8 @@ import api from '../../api/client';
 import StatusChip from '../../components/StatusChip';
 import PageHeader from '../../components/PageHeader';
 
+const cs = (window.eposAffiliate || {}).currencySymbol || 'RM';
+
 export default function CommissionList() {
   const [commissions, setCommissions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -92,7 +94,7 @@ export default function CommissionList() {
     { field: 'reference_id', headerName: 'Order #', width: 100 },
     {
       field: 'amount',
-      headerName: 'Amount (RM)',
+      headerName: `Amount (${cs})`,
       width: 130,
       valueFormatter: (value) => Number(value).toFixed(2),
     },
