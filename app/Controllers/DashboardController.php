@@ -262,6 +262,81 @@ class DashboardController {
         ], 200 );
     }
 
+    /**
+     * Admin dashboard — system-wide overview.
+     */
+    public static function admin( WP_REST_Request $request ) {
+        // KPIs.
+        $total_stats      = OrderAttribution::stats_total();
+        $total_resellers  = Reseller::count();
+        $active_resellers = Reseller::count( 'active' );
+        $total_bds        = self::count_all_bds();
+        $active_bds       = self::count_all_bds( 'active' );
+
+        // Pending payouts.
+        $pending_commissions = Commission::all( [ 'status' => 'pending' ] );
+        $approved_commissions = Commission::all( [ 'status' => 'approved' ] );
+        $pending_payout = 0;
+        foreach ( $pending_commissions as $c ) {
+            $pending_payout += (float) $c->amount;
+        }
+        foreach ( $approved_commissions as $c ) {
+            $pending_payout += (float) $c->amount;
+        }
+
+        // Chart data (last 30 days).
+        $chart = OrderAttribution::stats_daily( 30 );
+        $chart_data = [];
+        foreach ( $chart as $row ) {
+            $chart_data[] = [
+                'date'    => $row->date,
+                'revenue' => (float) $row->revenue,
+                'orders'  => (int) $row->orders,
+            ];
+        }
+
+        // Top resellers.
+        $top_resellers_raw = OrderAttribution::top_resellers( 5 );
+        $top_resellers = [];
+        foreach ( $top_resellers_raw as $r ) {
+            $top_resellers[] = [
+                'name'    => $r->name ?: 'Unknown',
+                'revenue' => (float) $r->revenue,
+                'orders'  => (int) $r->orders,
+            ];
+        }
+
+        // Recent transactions.
+        $recent_raw = OrderAttribution::recent( 10 );
+        $recent = [];
+        foreach ( $recent_raw as $r ) {
+            $recent[] = [
+                'order_id'  => $r->order_id,
+                'bd_name'   => $r->bd_name ?: 'Unknown',
+                'reseller'  => $r->reseller_name ?: 'Unknown',
+                'value'     => (float) $r->order_value,
+                'status'    => $r->commission_status ?: 'pending',
+                'date'      => $r->attributed_at,
+                'tracking_code' => $r->tracking_code ?: '',
+            ];
+        }
+
+        return new WP_REST_Response( [
+            'kpis' => [
+                'total_revenue'    => (float) ( $total_stats->total_revenue ?? 0 ),
+                'total_orders'     => (int) ( $total_stats->total_orders ?? 0 ),
+                'total_resellers'  => $total_resellers,
+                'active_resellers' => $active_resellers,
+                'total_bds'        => $total_bds,
+                'active_bds'       => $active_bds,
+                'pending_payouts'  => $pending_payout,
+            ],
+            'chart'          => $chart_data,
+            'top_resellers'  => $top_resellers,
+            'recent'         => $recent,
+        ], 200 );
+    }
+
     // ── Helpers ──
 
     /**
@@ -285,5 +360,23 @@ class DashboardController {
     private static function get_current_bd() {
         $user = wp_get_current_user();
         return BD::find_by_user_id( $user->ID );
+    }
+
+    /**
+     * Count all BDs in the system.
+     */
+    private static function count_all_bds( $status = null ) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'epos_bds';
+
+        if ( $status ) {
+            return (int) $wpdb->get_var(
+                $wpdb->prepare( "SELECT COUNT(*) FROM %i WHERE status = %s", $table, $status )
+            );
+        }
+
+        return (int) $wpdb->get_var(
+            $wpdb->prepare( "SELECT COUNT(*) FROM %i", $table )
+        );
     }
 }

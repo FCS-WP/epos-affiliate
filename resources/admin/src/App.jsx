@@ -1,5 +1,6 @@
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import Dashboard from './pages/Dashboard/Dashboard';
 import ResellerList from './pages/Resellers/ResellerList';
 import BDList from './pages/BDs/BDList';
 import CommissionList from './pages/Commissions/CommissionList';
@@ -8,6 +9,7 @@ import Settings from './pages/Settings/Settings';
 const config = window.eposAffiliate || {};
 
 const PAGES = {
+  dashboard: Dashboard,
   resellers: ResellerList,
   bds: BDList,
   commissions: CommissionList,
@@ -15,6 +17,7 @@ const PAGES = {
 };
 
 const PAGE_TITLES = {
+  dashboard: 'Dashboard',
   resellers: 'Reseller Management',
   bds: 'BD Agent Management',
   commissions: 'Commission Management',
@@ -23,8 +26,8 @@ const PAGE_TITLES = {
 
 export default function App() {
   const currentPage = config.currentPage || 'resellers';
-  const PageComponent = PAGES[currentPage] || ResellerList;
-  const pageTitle = PAGE_TITLES[currentPage] || 'EPOS Affiliate';
+  const PageComponent = PAGES[currentPage] || Dashboard;
+  const pageTitle = PAGE_TITLES[currentPage] || 'Dashboard';
 
   return (
     <Box sx={{ p: 3, maxWidth: 1400, mx: 'auto' }}>

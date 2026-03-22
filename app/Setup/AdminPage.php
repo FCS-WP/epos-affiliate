@@ -10,7 +10,8 @@ class AdminPage {
      * All admin submenu pages.
      */
     const PAGES = [
-        'epos-affiliate'              => 'Resellers',
+        'epos-affiliate'              => 'Dashboard',
+        'epos-affiliate-resellers'    => 'Resellers',
         'epos-affiliate-bds'          => 'BD Agents',
         'epos-affiliate-commissions'  => 'Commissions',
         'epos-affiliate-settings'     => 'Settings',
@@ -57,6 +58,7 @@ class AdminPage {
     private static function is_our_page( $hook ) {
         $our_hooks = [
             'toplevel_page_epos-affiliate',
+            'epos-affiliate_page_epos-affiliate-resellers',
             'epos-affiliate_page_epos-affiliate-bds',
             'epos-affiliate_page_epos-affiliate-commissions',
             'epos-affiliate_page_epos-affiliate-settings',
@@ -72,13 +74,14 @@ class AdminPage {
         $page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : 'epos-affiliate';
 
         $map = [
-            'epos-affiliate'              => 'resellers',
+            'epos-affiliate'              => 'dashboard',
+            'epos-affiliate-resellers'    => 'resellers',
             'epos-affiliate-bds'          => 'bds',
             'epos-affiliate-commissions'  => 'commissions',
             'epos-affiliate-settings'     => 'settings',
         ];
 
-        return $map[ $page ] ?? 'resellers';
+        return $map[ $page ] ?? 'dashboard';
     }
 
     /**

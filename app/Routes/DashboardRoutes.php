@@ -11,6 +11,12 @@ class DashboardRoutes {
     public static function register() {
         $ns = RouteRegistrar::API_NAMESPACE;
 
+        register_rest_route( $ns, '/dashboard/admin', [
+            'methods'             => 'GET',
+            'callback'            => [ DashboardController::class, 'admin' ],
+            'permission_callback' => [ RouteRegistrar::class, 'can_manage' ],
+        ] );
+
         register_rest_route( $ns, '/dashboard/reseller', [
             'methods'             => 'GET',
             'callback'            => [ DashboardController::class, 'reseller' ],

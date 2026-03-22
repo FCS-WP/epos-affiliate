@@ -110,6 +110,95 @@ class OrderAttribution {
     }
 
     /**
+     * Get total system stats (all resellers).
+     */
+    public static function stats_total() {
+        global $wpdb;
+        return $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT COUNT(*) as total_orders, COALESCE(SUM(order_value), 0) as total_revenue
+                 FROM %i",
+                self::table()
+            )
+        );
+    }
+
+    /**
+     * Get daily revenue for the last N days (for chart).
+     */
+    public static function stats_daily( $days = 30 ) {
+        global $wpdb;
+        $table = self::table();
+        $since = gmdate( 'Y-m-d', strtotime( "-{$days} days" ) );
+
+        return $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT DATE(attributed_at) as date, COALESCE(SUM(order_value), 0) as revenue, COUNT(*) as orders
+                 FROM %i
+                 WHERE attributed_at >= %s
+                 GROUP BY DATE(attributed_at)
+                 ORDER BY date ASC",
+                $table,
+                $since . ' 00:00:00'
+            )
+        );
+    }
+
+    /**
+     * Get top resellers by revenue.
+     */
+    public static function top_resellers( $limit = 5 ) {
+        global $wpdb;
+        $table          = self::table();
+        $reseller_table = $wpdb->prefix . 'epos_resellers';
+
+        return $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT a.reseller_id, r.name, COALESCE(SUM(a.order_value), 0) as revenue, COUNT(*) as orders
+                 FROM %i a
+                 LEFT JOIN %i r ON a.reseller_id = r.id
+                 GROUP BY a.reseller_id, r.name
+                 ORDER BY revenue DESC
+                 LIMIT %d",
+                $table,
+                $reseller_table,
+                $limit
+            )
+        );
+    }
+
+    /**
+     * Get recent transactions with BD and reseller names.
+     */
+    public static function recent( $limit = 10 ) {
+        global $wpdb;
+        $table          = self::table();
+        $bd_table       = $wpdb->prefix . 'epos_bds';
+        $reseller_table = $wpdb->prefix . 'epos_resellers';
+        $commission_table = $wpdb->prefix . 'epos_commissions';
+
+        return $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT a.order_id, a.order_value, a.attributed_at,
+                        b.name as bd_name, b.tracking_code,
+                        r.name as reseller_name,
+                        c.status as commission_status
+                 FROM %i a
+                 LEFT JOIN %i b ON a.bd_id = b.id
+                 LEFT JOIN %i r ON a.reseller_id = r.id
+                 LEFT JOIN %i c ON c.reference_id = a.order_id AND c.type = 'sales'
+                 ORDER BY a.attributed_at DESC
+                 LIMIT %d",
+                $table,
+                $bd_table,
+                $reseller_table,
+                $commission_table,
+                $limit
+            )
+        );
+    }
+
+    /**
      * Get aggregated stats for all BDs in a reseller.
      */
     public static function stats_by_reseller( $reseller_id, $date_from = null, $date_to = null ) {
