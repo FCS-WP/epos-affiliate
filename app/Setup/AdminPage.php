@@ -6,6 +6,16 @@ defined( 'ABSPATH' ) || exit;
 
 class AdminPage {
 
+    /**
+     * All admin submenu pages.
+     */
+    const PAGES = [
+        'epos-affiliate'              => 'Resellers',
+        'epos-affiliate-bds'          => 'BD Agents',
+        'epos-affiliate-commissions'  => 'Commissions',
+        'epos-affiliate-settings'     => 'Settings',
+    ];
+
     public static function init() {
         add_action( 'admin_menu', [ self::class, 'register_menu' ] );
         add_action( 'admin_enqueue_scripts', [ self::class, 'enqueue_assets' ] );
@@ -13,6 +23,7 @@ class AdminPage {
     }
 
     public static function register_menu() {
+        // Parent menu.
         add_menu_page(
             __( 'EPOS Affiliate', 'epos-affiliate' ),
             __( 'EPOS Affiliate', 'epos-affiliate' ),
@@ -22,6 +33,18 @@ class AdminPage {
             'dashicons-groups',
             30
         );
+
+        // Submenu pages.
+        foreach ( self::PAGES as $slug => $title ) {
+            add_submenu_page(
+                'epos-affiliate',
+                __( $title, 'epos-affiliate' ),
+                __( $title, 'epos-affiliate' ),
+                'epos_manage_affiliate',
+                $slug,
+                [ self::class, 'render' ]
+            );
+        }
     }
 
     public static function render() {
@@ -29,10 +52,40 @@ class AdminPage {
     }
 
     /**
-     * Remove WP default admin stylesheets on our page so MUI renders cleanly.
+     * Check if current screen is one of our admin pages.
+     */
+    private static function is_our_page( $hook ) {
+        $our_hooks = [
+            'toplevel_page_epos-affiliate',
+            'epos-affiliate_page_epos-affiliate-bds',
+            'epos-affiliate_page_epos-affiliate-commissions',
+            'epos-affiliate_page_epos-affiliate-settings',
+        ];
+
+        return in_array( $hook, $our_hooks, true );
+    }
+
+    /**
+     * Get the current admin page slug from the query string.
+     */
+    private static function get_current_page() {
+        $page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : 'epos-affiliate';
+
+        $map = [
+            'epos-affiliate'              => 'resellers',
+            'epos-affiliate-bds'          => 'bds',
+            'epos-affiliate-commissions'  => 'commissions',
+            'epos-affiliate-settings'     => 'settings',
+        ];
+
+        return $map[ $page ] ?? 'resellers';
+    }
+
+    /**
+     * Remove WP default admin stylesheets on our pages so MUI renders cleanly.
      */
     public static function remove_default_stylesheets( $hook ) {
-        if ( 'toplevel_page_epos-affiliate' !== $hook ) {
+        if ( ! self::is_our_page( $hook ) ) {
             return;
         }
 
@@ -66,7 +119,7 @@ class AdminPage {
     }
 
     public static function enqueue_assets( $hook ) {
-        if ( 'toplevel_page_epos-affiliate' !== $hook ) {
+        if ( ! self::is_our_page( $hook ) ) {
             return;
         }
 
@@ -75,8 +128,8 @@ class AdminPage {
         $version    = EPOS_AFFILIATE_VERSION . '.' . filemtime( EPOS_AFFILIATE_PATH . 'dist/admin/admin.js' );
 
         if ( file_exists( $asset_file ) ) {
-            $asset   = require $asset_file;
-            $deps    = $asset['dependencies'] ?? [];
+            $asset = require $asset_file;
+            $deps  = $asset['dependencies'] ?? [];
         }
 
         wp_enqueue_script(
@@ -98,10 +151,12 @@ class AdminPage {
         }
 
         wp_localize_script( 'epos-affiliate-admin', 'eposAffiliate', [
-            'apiBase'  => esc_url_raw( rest_url( 'epos-affiliate/v1' ) ),
-            'nonce'    => wp_create_nonce( 'wp_rest' ),
-            'userId'   => get_current_user_id(),
-            'userRole' => self::get_current_role(),
+            'apiBase'     => esc_url_raw( rest_url( 'epos-affiliate/v1' ) ),
+            'nonce'       => wp_create_nonce( 'wp_rest' ),
+            'userId'      => get_current_user_id(),
+            'userRole'    => self::get_current_role(),
+            'currentPage' => self::get_current_page(),
+            'adminUrl'    => admin_url( 'admin.php' ),
         ] );
     }
 
