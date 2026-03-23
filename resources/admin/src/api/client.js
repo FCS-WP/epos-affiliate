@@ -27,6 +27,11 @@ async function request(endpoint, options = {}) {
   });
 
   if (!res.ok) {
+    // Session expired — redirect to WP login.
+    if (res.status === 401 || res.status === 403) {
+      window.location.href = '/wp-login.php';
+      return;
+    }
     const error = await res.json().catch(() => ({ message: res.statusText }));
     throw new Error(error.message || `Request failed: ${res.status}`);
   }

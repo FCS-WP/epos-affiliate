@@ -22,6 +22,12 @@ async function request(endpoint, options = {}) {
   const res = await fetch(url, { ...options, headers });
 
   if (!res.ok) {
+    // Session expired — redirect to login.
+    if (res.status === 401 || res.status === 403) {
+      const { homeUrl } = getConfig();
+      window.location.href = `${homeUrl || ''}/my/login/`;
+      return;
+    }
     const error = await res.json().catch(() => ({ message: res.statusText }));
     throw new Error(error.message || `Request failed: ${res.status}`);
   }
