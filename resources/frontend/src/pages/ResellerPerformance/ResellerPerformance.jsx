@@ -120,7 +120,7 @@ export default function ResellerPerformance() {
           >
             {(params.value || '?').charAt(0).toUpperCase()}
           </Avatar>
-          <Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             <Typography variant="body2" fontWeight={600}>{params.value}</Typography>
             <Chip
               label={params.row.tracking_code}
