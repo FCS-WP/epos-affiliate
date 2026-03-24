@@ -263,6 +263,60 @@ class DashboardController {
     }
 
     /**
+     * BD Agent CSV export.
+     */
+    public static function bd_export( WP_REST_Request $request ) {
+        $response = self::bd( $request );
+        $data     = $response->get_data();
+        $orders   = $data['orders'] ?? [];
+
+        $csv = "Order ID,Date,Value,Commission,Status\n";
+        foreach ( $orders as $order ) {
+            $csv .= sprintf(
+                "%s,%s,%.2f,%.2f,%s\n",
+                $order['order_id'],
+                $order['date'] ?? '',
+                $order['value'],
+                $order['commission'],
+                $order['payout_status']
+            );
+        }
+
+        $response = new WP_REST_Response( $csv, 200 );
+        $response->header( 'Content-Type', 'text/csv' );
+        $response->header( 'Content-Disposition', 'attachment; filename="my-orders.csv"' );
+        return $response;
+    }
+
+    /**
+     * Reseller views a BD's orders — CSV export.
+     */
+    public static function reseller_bd_orders_export( WP_REST_Request $request ) {
+        $response = self::reseller_bd_orders( $request );
+        $data     = $response->get_data();
+        $orders   = $data['orders'] ?? [];
+        $bd       = $data['bd'] ?? [];
+
+        $csv = "Order ID,Date,Value,Commission,Status\n";
+        foreach ( $orders as $order ) {
+            $csv .= sprintf(
+                "%s,%s,%.2f,%.2f,%s\n",
+                $order['order_id'],
+                $order['date'] ?? '',
+                $order['value'],
+                $order['commission'],
+                $order['payout_status']
+            );
+        }
+
+        $filename = 'orders-' . ( $bd['tracking_code'] ?? 'export' ) . '.csv';
+        $response = new WP_REST_Response( $csv, 200 );
+        $response->header( 'Content-Type', 'text/csv' );
+        $response->header( 'Content-Disposition', 'attachment; filename="' . $filename . '"' );
+        return $response;
+    }
+
+    /**
      * Admin dashboard — system-wide overview.
      */
     public static function admin( WP_REST_Request $request ) {

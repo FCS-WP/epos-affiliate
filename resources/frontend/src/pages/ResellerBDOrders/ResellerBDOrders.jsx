@@ -236,7 +236,7 @@ export default function ResellerBDOrders() {
           size="small"
           startIcon={<FileDownloadIcon />}
           onClick={() => {
-            api.download(`/dashboard/reseller/bd/${bdId}/orders`, {
+            api.download(`/dashboard/reseller/bd/${bdId}/orders/export`, {
               ...(dateFrom && { date_from: dayjs(dateFrom).format('YYYY-MM-DD') }),
               ...(dateTo && { date_to: dayjs(dateTo).format('YYYY-MM-DD') }),
             }, `orders-${bd.tracking_code || bdId}.csv`);

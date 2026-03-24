@@ -35,9 +35,21 @@ class DashboardRoutes {
             'permission_callback' => [ RouteRegistrar::class, 'can_view_reseller_dashboard' ],
         ] );
 
+        register_rest_route( $ns, '/dashboard/reseller/bd/(?P<bd_id>\d+)/orders/export', [
+            'methods'             => 'GET',
+            'callback'            => [ DashboardController::class, 'reseller_bd_orders_export' ],
+            'permission_callback' => [ RouteRegistrar::class, 'can_view_reseller_dashboard' ],
+        ] );
+
         register_rest_route( $ns, '/dashboard/bd', [
             'methods'             => 'GET',
             'callback'            => [ DashboardController::class, 'bd' ],
+            'permission_callback' => [ RouteRegistrar::class, 'can_view_bd_dashboard' ],
+        ] );
+
+        register_rest_route( $ns, '/dashboard/bd/export', [
+            'methods'             => 'GET',
+            'callback'            => [ DashboardController::class, 'bd_export' ],
             'permission_callback' => [ RouteRegistrar::class, 'can_view_bd_dashboard' ],
         ] );
     }
