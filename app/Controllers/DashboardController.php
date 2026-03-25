@@ -185,11 +185,22 @@ class DashboardController {
                 }
             }
 
+            // Get item quantity from WC order.
+            $wc_order  = wc_get_order( $attr->order_id );
+            $num_units = 0;
+            if ( $wc_order ) {
+                foreach ( $wc_order->get_items() as $item ) {
+                    $num_units += $item->get_quantity();
+                }
+            }
+
             $orders[] = [
                 'order_id'      => $attr->order_id,
                 'date'          => $attr->attributed_at,
                 'value'         => (float) $attr->order_value,
+                'num_units'     => $num_units,
                 'commission'    => $comm_amount,
+                'usage_bonus'   => 0, // Phase 2
                 'payout_status' => $comm_status,
             ];
         }
@@ -244,12 +255,21 @@ class DashboardController {
 
         $orders = [];
         foreach ( $attributions as $attr ) {
-            $cr          = $comm_map[ (int) $attr->order_id ] ?? null;
-            $orders[]    = [
+            $cr        = $comm_map[ (int) $attr->order_id ] ?? null;
+            $wc_order  = wc_get_order( $attr->order_id );
+            $num_units = 0;
+            if ( $wc_order ) {
+                foreach ( $wc_order->get_items() as $item ) {
+                    $num_units += $item->get_quantity();
+                }
+            }
+            $orders[]  = [
                 'order_id'      => $attr->order_id,
                 'date'          => $attr->attributed_at,
                 'value'         => (float) $attr->order_value,
+                'num_units'     => $num_units,
                 'commission'    => $cr ? (float) $cr->amount : 0,
+                'usage_bonus'   => 0, // Phase 2
                 'payout_status' => $cr ? $cr->status : 'pending',
             ];
         }
@@ -276,14 +296,16 @@ class DashboardController {
         header( 'Content-Disposition: attachment; filename="my-orders.csv"' );
 
         $output = fopen( 'php://output', 'w' );
-        fputcsv( $output, [ 'Order ID', 'Date', 'Value', 'Commission', 'Status' ] );
+        fputcsv( $output, [ 'Order ID', 'Date', 'Value', 'Num Units', 'Sales Commission', 'Usage Bonus', 'Status' ] );
 
         foreach ( $orders as $order ) {
             fputcsv( $output, [
                 $order['order_id'],
                 $order['date'] ?? '',
                 number_format( $order['value'], 2, '.', '' ),
+                $order['num_units'] ?? 0,
                 number_format( $order['commission'], 2, '.', '' ),
+                number_format( $order['usage_bonus'] ?? 0, 2, '.', '' ),
                 $order['payout_status'],
             ] );
         }
@@ -307,14 +329,16 @@ class DashboardController {
         header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
 
         $output = fopen( 'php://output', 'w' );
-        fputcsv( $output, [ 'Order ID', 'Date', 'Value', 'Commission', 'Status' ] );
+        fputcsv( $output, [ 'Order ID', 'Date', 'Value', 'Num Units', 'Sales Commission', 'Usage Bonus', 'Status' ] );
 
         foreach ( $orders as $order ) {
             fputcsv( $output, [
                 $order['order_id'],
                 $order['date'] ?? '',
                 number_format( $order['value'], 2, '.', '' ),
+                $order['num_units'] ?? 0,
                 number_format( $order['commission'], 2, '.', '' ),
+                number_format( $order['usage_bonus'] ?? 0, 2, '.', '' ),
                 $order['payout_status'],
             ] );
         }

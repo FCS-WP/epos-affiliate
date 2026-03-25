@@ -161,7 +161,31 @@ export default function ResellerPerformance() {
     },
     {
       field: 'sales_commission',
-      headerName: `COMMISSION (${cs})`,
+      headerName: `SALES COMMISSION (${cs})`,
+      width: 180,
+      headerAlign: 'left',
+      align: 'left',
+      renderCell: (params) => (
+        <Typography variant="body2" fontWeight={600}>
+          {cs} {Number(params.value || 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+        </Typography>
+      ),
+    },
+    {
+      field: 'num_units',
+      headerName: 'NUM UNITS',
+      width: 100,
+      headerAlign: 'left',
+      align: 'left',
+      renderCell: (params) => (
+        <Typography variant="body2" fontWeight={600}>
+          {(params.value || 0).toLocaleString()}
+        </Typography>
+      ),
+    },
+    {
+      field: 'usage_bonus',
+      headerName: `USAGE BONUS (${cs})`,
       width: 160,
       headerAlign: 'left',
       align: 'left',

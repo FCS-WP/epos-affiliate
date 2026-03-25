@@ -86,26 +86,13 @@ export default function BDDashboard() {
       value: kpis.total_orders ?? 0,
       icon: <ShoppingCartIcon />,
       highlight: true,
-      sub: "+12% this month",
+      sub: "Attributed sales",
     },
     {
-      label: "Pending Commission",
-      value: `${cs} ${Number(kpis.commission_pending ?? 0).toLocaleString("en-MY", { minimumFractionDigits: 2 })}`,
-      icon: <HourglassBottomIcon />,
-      sub: "Awaiting verification",
-    },
-    {
-      label: "Paid Commission",
-      value: `${cs} ${Number(kpis.commission_paid ?? 0).toLocaleString("en-MY", { minimumFractionDigits: 2 })}`,
+      label: "Total Sales Commission",
+      value: `${cs} ${Number((kpis.commission_paid ?? 0) + (kpis.commission_pending ?? 0)).toLocaleString("en-MY", { minimumFractionDigits: 2 })}`,
       icon: <AttachMoneyIcon />,
       sub: "Lifetime earnings",
-      color: "secondary",
-    },
-    {
-      label: "Usage Bonus",
-      value: `${cs} ${Number(kpis.usage_bonus_current ?? 0).toLocaleString("en-MY", { minimumFractionDigits: 2 })}`,
-      icon: <StarIcon />,
-      sub: "Est. next payout",
       color: "secondary",
     },
   ];
@@ -146,7 +133,7 @@ export default function BDDashboard() {
     },
     {
       field: "commission",
-      headerName: "COMMISSION",
+      headerName: "SALES COMMISSION",
       width: 180,
 
       headerAlign: "left",
@@ -155,6 +142,33 @@ export default function BDDashboard() {
         <Typography variant="body2" fontWeight={600} color="secondary">
           {cs}{" "}
           {Number(params.value).toLocaleString("en-MY", {
+            minimumFractionDigits: 2,
+          })}
+        </Typography>
+      ),
+    },
+    {
+      field: "num_units",
+      headerName: "NUM UNITS",
+      width: 100,
+      headerAlign: "left",
+      align: "left",
+      renderCell: (params) => (
+        <Typography variant="body2" fontWeight={600}>
+          {(params.value || 0).toLocaleString()}
+        </Typography>
+      ),
+    },
+    {
+      field: "usage_bonus",
+      headerName: `USAGE BONUS (${cs})`,
+      width: 160,
+      headerAlign: "left",
+      align: "left",
+      renderCell: (params) => (
+        <Typography variant="body2" fontWeight={600}>
+          {cs}{" "}
+          {Number(params.value || 0).toLocaleString("en-MY", {
             minimumFractionDigits: 2,
           })}
         </Typography>
@@ -330,12 +344,12 @@ export default function BDDashboard() {
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: { xs: "1fr 1fr", md: "1fr 1fr 1fr 1fr" },
+            gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
             gap: 2,
             mb: 3,
           }}
         >
-          {[1, 2, 3, 4].map((i) => (
+          {[1, 2].map((i) => (
             <Skeleton
               key={i}
               variant="rounded"
@@ -348,7 +362,7 @@ export default function BDDashboard() {
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: { xs: "1fr 1fr", md: "1fr 1fr 1fr 1fr" },
+            gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
             gap: 2,
             mb: 3,
           }}

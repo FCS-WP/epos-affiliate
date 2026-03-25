@@ -113,7 +113,7 @@ export default function BDOrders() {
       align: "left",
       renderCell: (params) => (
         <Typography variant="body2" fontWeight={500}>
-          RM{" "}
+          {cs}{" "}
           {Number(params.value).toLocaleString("en-MY", {
             minimumFractionDigits: 2,
           })}
@@ -122,14 +122,41 @@ export default function BDOrders() {
     },
     {
       field: "commission",
-      headerName: "COMMISSION",
+      headerName: "SALES COMMISSION",
       headerAlign: "left",
       width: 150,
       align: "left",
       renderCell: (params) => (
         <Typography variant="body2" fontWeight={600} color="secondary">
-          RM{" "}
+          {cs}{" "}
           {Number(params.value).toLocaleString("en-MY", {
+            minimumFractionDigits: 2,
+          })}
+        </Typography>
+      ),
+    },
+    {
+      field: "num_units",
+      headerName: "NUM UNITS",
+      width: 100,
+      headerAlign: "left",
+      align: "left",
+      renderCell: (params) => (
+        <Typography variant="body2" fontWeight={600}>
+          {(params.value || 0).toLocaleString()}
+        </Typography>
+      ),
+    },
+    {
+      field: "usage_bonus",
+      headerName: `USAGE BONUS (${cs})`,
+      width: 160,
+      headerAlign: "left",
+      align: "left",
+      renderCell: (params) => (
+        <Typography variant="body2" fontWeight={600}>
+          {cs}{" "}
+          {Number(params.value || 0).toLocaleString("en-MY", {
             minimumFractionDigits: 2,
           })}
         </Typography>
@@ -193,7 +220,7 @@ export default function BDOrders() {
               Value
             </Typography>
             <Typography variant="body1" fontWeight={700}>
-              RM{" "}
+              {cs}{" "}
               {Number(order.value).toLocaleString("en-MY", {
                 minimumFractionDigits: 2,
               })}
@@ -212,7 +239,7 @@ export default function BDOrders() {
               Commission
             </Typography>
             <Typography variant="body1" fontWeight={700} color="secondary">
-              RM{" "}
+              {cs}{" "}
               {Number(order.commission).toLocaleString("en-MY", {
                 minimumFractionDigits: 2,
               })}

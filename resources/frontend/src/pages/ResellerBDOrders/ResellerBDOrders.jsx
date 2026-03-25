@@ -105,7 +105,7 @@ export default function ResellerBDOrders() {
     },
     {
       field: 'commission',
-      headerName: 'COMMISSION',
+      headerName: 'SALES COMMISSION',
       width: 180,
       headerAlign: 'left',
       align: 'left',
