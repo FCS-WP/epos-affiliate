@@ -36,6 +36,11 @@ class RouteRegistrar {
         return current_user_can( 'epos_view_bd_dashboard' );
     }
 
+    public static function can_manage_own_bds() {
+        return current_user_can( 'epos_view_reseller_dashboard' )
+            || current_user_can( 'epos_manage_affiliate' );
+    }
+
     public static function can_view_own_profile() {
         return current_user_can( 'epos_view_reseller_dashboard' )
             || current_user_can( 'epos_view_bd_dashboard' )

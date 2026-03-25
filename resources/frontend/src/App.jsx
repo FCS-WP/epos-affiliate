@@ -23,6 +23,7 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import PersonIcon from "@mui/icons-material/Person";
 import BarChartIcon from "@mui/icons-material/BarChart";
+import GroupAddIcon from "@mui/icons-material/GroupAdd";
 import LogoutIcon from "@mui/icons-material/Logout";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import QrCode2Icon from "@mui/icons-material/QrCode2";
@@ -33,6 +34,7 @@ import BDQRCode from "./pages/BDQRCode/BDQRCode";
 import ResellerProfile from "./pages/ResellerProfile/ResellerProfile";
 import ResellerPerformance from "./pages/ResellerPerformance/ResellerPerformance";
 import ResellerBDOrders from "./pages/ResellerBDOrders/ResellerBDOrders";
+import ResellerBDs from "./pages/ResellerBDs/ResellerBDs";
 import BDProfile from "./pages/BDProfile/BDProfile";
 
 const config = window.eposAffiliate || {};
@@ -54,6 +56,7 @@ function getResellerNav() {
   return [
     { path: "/dashboard", label: "Overview", icon: <DashboardIcon /> },
     { path: "/performance", label: "BD Performance", icon: <BarChartIcon /> },
+    { path: "/bds", label: "Manage BDs", icon: <GroupAddIcon /> },
     { path: "/profile", label: "Profile", icon: <PersonIcon /> },
   ];
 }
@@ -302,6 +305,7 @@ function RoleRouter({ role }) {
     <Routes>
       <Route path="/dashboard" element={<ResellerDashboard />} />
       <Route path="/performance" element={<ResellerPerformance />} />
+      <Route path="/bds" element={<ResellerBDs />} />
       <Route path="/orders/:bdId" element={<ResellerBDOrders />} />
       <Route path="/profile" element={<ResellerProfile />} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
