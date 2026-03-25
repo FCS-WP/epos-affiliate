@@ -7,7 +7,6 @@ defined( 'ABSPATH' ) || exit;
 use EposAffiliate\Models\Commission;
 use EposAffiliate\Models\OrderAttribution;
 use WP_REST_Request;
-use WP_REST_Response;
 
 class ExportController {
 
@@ -21,27 +20,29 @@ class ExportController {
 
         $rows = Commission::all( $args );
 
-        $csv = "ID,BD Name,Reseller,Type,Order #,Amount (RM),Status,Period,Created,Paid At\n";
+        header( 'Content-Type: text/csv; charset=utf-8' );
+        header( 'Content-Disposition: attachment; filename="commissions.csv"' );
+
+        $output = fopen( 'php://output', 'w' );
+        fputcsv( $output, [ 'ID', 'BD Name', 'Reseller', 'Type', 'Order #', 'Amount', 'Status', 'Period', 'Created', 'Paid At' ] );
+
         foreach ( $rows as $row ) {
-            $csv .= sprintf(
-                "%d,%s,%s,%s,%s,%.2f,%s,%s,%s,%s\n",
+            fputcsv( $output, [
                 $row->id,
-                self::escape_csv( $row->bd_name ?? '' ),
-                self::escape_csv( $row->reseller_name ?? '' ),
+                $row->bd_name ?? '',
+                $row->reseller_name ?? '',
                 $row->type,
                 $row->reference_id ?? '',
-                (float) $row->amount,
+                number_format( (float) $row->amount, 2, '.', '' ),
                 $row->status,
                 $row->period_month ?? '',
                 $row->created_at,
-                $row->paid_at ?? ''
-            );
+                $row->paid_at ?? '',
+            ] );
         }
 
-        $response = new WP_REST_Response( $csv, 200 );
-        $response->header( 'Content-Type', 'text/csv' );
-        $response->header( 'Content-Disposition', 'attachment; filename="commissions.csv"' );
-        return $response;
+        fclose( $output );
+        exit;
     }
 
     /**
@@ -56,33 +57,25 @@ class ExportController {
 
         $rows = OrderAttribution::all( $args );
 
-        $csv = "ID,Order ID,BD ID,Reseller ID,Tracking Code,Order Value (RM),Attributed At\n";
+        header( 'Content-Type: text/csv; charset=utf-8' );
+        header( 'Content-Disposition: attachment; filename="attributions.csv"' );
+
+        $output = fopen( 'php://output', 'w' );
+        fputcsv( $output, [ 'ID', 'Order ID', 'BD ID', 'Reseller ID', 'Tracking Code', 'Order Value', 'Attributed At' ] );
+
         foreach ( $rows as $row ) {
-            $csv .= sprintf(
-                "%d,%d,%d,%d,%s,%.2f,%s\n",
+            fputcsv( $output, [
                 $row->id,
                 $row->order_id,
                 $row->bd_id,
                 $row->reseller_id,
                 $row->tracking_code,
-                (float) $row->order_value,
-                $row->attributed_at
-            );
+                number_format( (float) $row->order_value, 2, '.', '' ),
+                $row->attributed_at,
+            ] );
         }
 
-        $response = new WP_REST_Response( $csv, 200 );
-        $response->header( 'Content-Type', 'text/csv' );
-        $response->header( 'Content-Disposition', 'attachment; filename="attributions.csv"' );
-        return $response;
-    }
-
-    /**
-     * Escape a value for safe CSV output.
-     */
-    private static function escape_csv( $value ) {
-        if ( strpos( $value, ',' ) !== false || strpos( $value, '"' ) !== false ) {
-            return '"' . str_replace( '"', '""', $value ) . '"';
-        }
-        return $value;
+        fclose( $output );
+        exit;
     }
 }

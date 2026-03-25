@@ -114,24 +114,26 @@ class DashboardController {
         $data     = $response->get_data();
         $rows     = $data['bds'] ?? [];
 
-        $csv = "BD Name,Tracking Code,Orders,Revenue (RM),Sales Commission (RM),Usage Bonus (RM),Last Sale\n";
+        header( 'Content-Type: text/csv; charset=utf-8' );
+        header( 'Content-Disposition: attachment; filename="reseller-report.csv"' );
+
+        $output = fopen( 'php://output', 'w' );
+        fputcsv( $output, [ 'BD Name', 'Tracking Code', 'Orders', 'Revenue', 'Sales Commission', 'Usage Bonus', 'Last Sale' ] );
+
         foreach ( $rows as $row ) {
-            $csv .= sprintf(
-                "%s,%s,%d,%.2f,%.2f,%.2f,%s\n",
+            fputcsv( $output, [
                 $row['name'],
                 $row['tracking_code'],
                 $row['orders'],
-                $row['revenue'],
-                $row['sales_commission'],
-                $row['usage_bonus'],
-                $row['last_sale_date'] ?? ''
-            );
+                number_format( $row['revenue'], 2, '.', '' ),
+                number_format( $row['sales_commission'], 2, '.', '' ),
+                number_format( $row['usage_bonus'], 2, '.', '' ),
+                $row['last_sale_date'] ?? '',
+            ] );
         }
 
-        $response = new WP_REST_Response( $csv, 200 );
-        $response->header( 'Content-Type', 'text/csv' );
-        $response->header( 'Content-Disposition', 'attachment; filename="reseller-report.csv"' );
-        return $response;
+        fclose( $output );
+        exit;
     }
 
     /**
@@ -270,22 +272,24 @@ class DashboardController {
         $data     = $response->get_data();
         $orders   = $data['orders'] ?? [];
 
-        $csv = "Order ID,Date,Value,Commission,Status\n";
+        header( 'Content-Type: text/csv; charset=utf-8' );
+        header( 'Content-Disposition: attachment; filename="my-orders.csv"' );
+
+        $output = fopen( 'php://output', 'w' );
+        fputcsv( $output, [ 'Order ID', 'Date', 'Value', 'Commission', 'Status' ] );
+
         foreach ( $orders as $order ) {
-            $csv .= sprintf(
-                "%s,%s,%.2f,%.2f,%s\n",
+            fputcsv( $output, [
                 $order['order_id'],
                 $order['date'] ?? '',
-                $order['value'],
-                $order['commission'],
-                $order['payout_status']
-            );
+                number_format( $order['value'], 2, '.', '' ),
+                number_format( $order['commission'], 2, '.', '' ),
+                $order['payout_status'],
+            ] );
         }
 
-        $response = new WP_REST_Response( $csv, 200 );
-        $response->header( 'Content-Type', 'text/csv' );
-        $response->header( 'Content-Disposition', 'attachment; filename="my-orders.csv"' );
-        return $response;
+        fclose( $output );
+        exit;
     }
 
     /**
@@ -297,23 +301,26 @@ class DashboardController {
         $orders   = $data['orders'] ?? [];
         $bd       = $data['bd'] ?? [];
 
-        $csv = "Order ID,Date,Value,Commission,Status\n";
+        $filename = 'orders-' . sanitize_file_name( $bd['tracking_code'] ?? 'export' ) . '.csv';
+
+        header( 'Content-Type: text/csv; charset=utf-8' );
+        header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+
+        $output = fopen( 'php://output', 'w' );
+        fputcsv( $output, [ 'Order ID', 'Date', 'Value', 'Commission', 'Status' ] );
+
         foreach ( $orders as $order ) {
-            $csv .= sprintf(
-                "%s,%s,%.2f,%.2f,%s\n",
+            fputcsv( $output, [
                 $order['order_id'],
                 $order['date'] ?? '',
-                $order['value'],
-                $order['commission'],
-                $order['payout_status']
-            );
+                number_format( $order['value'], 2, '.', '' ),
+                number_format( $order['commission'], 2, '.', '' ),
+                $order['payout_status'],
+            ] );
         }
 
-        $filename = 'orders-' . ( $bd['tracking_code'] ?? 'export' ) . '.csv';
-        $response = new WP_REST_Response( $csv, 200 );
-        $response->header( 'Content-Type', 'text/csv' );
-        $response->header( 'Content-Disposition', 'attachment; filename="' . $filename . '"' );
-        return $response;
+        fclose( $output );
+        exit;
     }
 
     /**
