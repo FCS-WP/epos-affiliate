@@ -104,14 +104,54 @@ export default function ResellerBDOrders() {
       ),
     },
     {
+      field: 'num_units',
+      headerName: 'NUMBER OF UNITS',
+      width: 100,
+      headerAlign: 'left',
+      align: 'left',
+      renderCell: (params) => (
+        <Typography variant="body2" fontWeight={600}>
+          {(params.value || 0).toLocaleString()}
+        </Typography>
+      ),
+    },
+    {
+      field: 'usage_target_met',
+      headerName: 'USAGE TARGET',
+      width: 130,
+      headerAlign: 'center',
+      align: 'center',
+      renderCell: (params) => (
+        <Chip
+          label={params.value ? 'Yes' : 'No'}
+          size="small"
+          color={params.value ? 'success' : 'default'}
+          variant="outlined"
+          sx={{ fontWeight: 600, fontSize: '0.7rem' }}
+        />
+      ),
+    },
+    {
       field: 'commission',
-      headerName: 'SALES COMMISSION',
+      headerName: `SALES COMMISSION (${cs})`,
       width: 180,
       headerAlign: 'left',
       align: 'left',
       renderCell: (params) => (
         <Typography variant="body2" fontWeight={600} color="secondary">
-          {cs} {Number(params.value).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+          {cs} {Number(params.value || 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+        </Typography>
+      ),
+    },
+    {
+      field: 'usage_bonus',
+      headerName: `USAGE BONUS (${cs})`,
+      width: 160,
+      headerAlign: 'left',
+      align: 'left',
+      renderCell: (params) => (
+        <Typography variant="body2" fontWeight={600}>
+          {cs} {Number(params.value || 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
         </Typography>
       ),
     },

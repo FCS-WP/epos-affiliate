@@ -173,7 +173,7 @@ export default function ResellerPerformance() {
     },
     {
       field: 'num_units',
-      headerName: 'NUM UNITS',
+      headerName: 'NUMBER OF UNITS',
       width: 100,
       headerAlign: 'left',
       align: 'left',

@@ -164,24 +164,17 @@ export default function ResellerBDs() {
           >
             {(params.value || "?").charAt(0).toUpperCase()}
           </Avatar>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-            <Typography
-              variant="body2"
-              fontWeight={600}
-              sx={{ lineHeight: 1.3 }}
-            >
-              {params.value}
-            </Typography>
-            <Typography
-              variant="caption"
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Typography variant="body2" fontWeight={600}>{params.value}</Typography>
+            <Chip
+              label={params.row.tracking_code}
+              size="small"
               sx={{
-                fontFamily: "monospace",
-                fontSize: "0.65rem",
-                color: alpha(theme.palette.primary.main, 0.6),
+                fontWeight: 600, fontSize: '0.65rem', fontFamily: 'monospace', height: 20,
+                backgroundColor: alpha(theme.palette.primary.main, 0.06),
+                color: theme.palette.primary.main,
               }}
-            >
-              {params.row.tracking_code}
-            </Typography>
+            />
           </Box>
         </Box>
       ),
