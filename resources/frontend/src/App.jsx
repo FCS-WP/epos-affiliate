@@ -307,6 +307,7 @@ function RoleRouter({ role }) {
       <Route path="/performance" element={<ResellerPerformance />} />
       <Route path="/bds" element={<ResellerBDs />} />
       <Route path="/orders/:bdId" element={<ResellerBDOrders />} />
+      <Route path="/qr" element={<BDQRCode />} />
       <Route path="/profile" element={<ResellerProfile />} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

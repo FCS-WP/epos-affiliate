@@ -60,20 +60,22 @@ class ProfileController {
         if ( $role === 'reseller_manager' || $role === 'administrator' ) {
             $reseller = Reseller::find_by_user_id( $user->ID );
             if ( $reseller ) {
-                $profile['reseller_name'] = $reseller->name;
-                $profile['reseller_slug'] = $reseller->slug;
+                $profile['reseller_name']   = $reseller->name;
+                $profile['reseller_slug']   = $reseller->slug;
                 $profile['reseller_status'] = $reseller->status;
+                $profile['reseller_id']     = $reseller->id;
             }
         }
 
-        if ( $role === 'bd_agent' || $role === 'administrator' ) {
-            $bd = BD::find_by_user_id( $user->ID );
-            if ( $bd ) {
-                $profile['tracking_code'] = $bd->tracking_code;
-                $profile['qr_token']      = $bd->qr_token;
-                $profile['qr_url']        = site_url( '/my/qr/' . $bd->qr_token );
-                $profile['bd_status']     = $bd->status;
-                $profile['reseller_id']   = $bd->reseller_id;
+        // Both BD agents and Reseller managers can have BD records (Resellers get auto-created BD).
+        $bd = BD::find_by_user_id( $user->ID );
+        if ( $bd ) {
+            $profile['tracking_code'] = $bd->tracking_code;
+            $profile['qr_token']      = $bd->qr_token;
+            $profile['qr_url']        = site_url( '/my/qr/' . $bd->qr_token );
+            $profile['bd_status']     = $bd->status;
+            if ( ! isset( $profile['reseller_id'] ) ) {
+                $profile['reseller_id'] = $bd->reseller_id;
             }
         }
 

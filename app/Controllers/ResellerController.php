@@ -5,6 +5,8 @@ namespace EposAffiliate\Controllers;
 defined( 'ABSPATH' ) || exit;
 
 use EposAffiliate\Models\Reseller;
+use EposAffiliate\Models\BD;
+use EposAffiliate\Services\CouponService;
 use WP_REST_Request;
 use WP_REST_Response;
 
@@ -72,6 +74,26 @@ class ResellerController {
 
         if ( ! $id ) {
             return new WP_REST_Response( [ 'message' => 'Failed to create reseller.' ], 500 );
+        }
+
+        // Auto-create a BD record for the Reseller so they can also use QR tracking.
+        if ( $wp_user_id ) {
+            $bd_code       = strtoupper( $slug );
+            $tracking_code = 'BD-' . $bd_code . '-OWNER';
+
+            // Only create if not already existing.
+            if ( ! BD::find_by_tracking_code( $tracking_code ) ) {
+                $bd_id = BD::create( [
+                    'reseller_id'   => $id,
+                    'wp_user_id'    => $wp_user_id,
+                    'name'          => $name,
+                    'tracking_code' => $tracking_code,
+                ] );
+
+                if ( $bd_id ) {
+                    CouponService::create_tracking_coupon( $tracking_code, $wp_user_id, $id );
+                }
+            }
         }
 
         return new WP_REST_Response( Reseller::find( $id ), 201 );

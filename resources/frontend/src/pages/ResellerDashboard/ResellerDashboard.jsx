@@ -31,9 +31,9 @@ import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import QrCode2Icon from '@mui/icons-material/QrCode2';
 import dayjs from 'dayjs';
 import api from '../../api/client';
-import StatusChip from '../../components/StatusChip';
 
 const config = window.eposAffiliate || {};
 const cs = config.currencySymbol || 'RM';
@@ -43,6 +43,7 @@ export default function ResellerDashboard() {
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [dashboard, setDashboard] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dateFrom, setDateFrom] = useState(null);
@@ -67,6 +68,11 @@ export default function ResellerDashboard() {
   }, [dateFrom, dateTo]);
 
   useEffect(() => { fetchDashboard(); }, [fetchDashboard]);
+
+  // Fetch profile to get QR tracking info
+  useEffect(() => {
+    api.get('/profile').then(setProfile).catch(() => {});
+  }, []);
 
   const handleExport = () => {
     const params = {};
@@ -98,8 +104,6 @@ export default function ResellerDashboard() {
 
   // Max revenue for progress bars
   const maxRevenue = Math.max(...bds.map((bd) => bd.revenue || 0), 1);
-
-  const userName = config.userName || 'Manager';
 
   const columns = [
     {
@@ -338,6 +342,40 @@ export default function ResellerDashboard() {
           />
         </Box>
       </Box>
+
+      {/* ── QR Tracking Card (if reseller has a BD record) ── */}
+      {profile?.tracking_code && (
+        <Card
+          sx={{
+            mb: 3,
+            border: `2px solid ${alpha(theme.palette.secondary.main, 0.2)}`,
+            background: `linear-gradient(135deg, ${alpha(theme.palette.secondary.main, 0.04)} 0%, ${alpha(theme.palette.primary.main, 0.02)} 100%)`,
+          }}
+        >
+          <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 }, display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box
+              sx={{
+                width: 48, height: 48, borderRadius: 2,
+                backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}
+            >
+              <QrCode2Icon sx={{ fontSize: 28, color: 'primary.main' }} />
+            </Box>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.6rem' }}>
+                Your Tracking ID: {profile.tracking_code}
+              </Typography>
+              <Typography variant="subtitle2" fontWeight={700} color="primary" sx={{ lineHeight: 1.3 }}>
+                Your QR Code
+              </Typography>
+            </Box>
+            <Button variant="contained" size="small" onClick={() => navigate('/qr')} sx={{ flexShrink: 0 }}>
+              View QR
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* ── KPI Cards ── */}
       {loading ? (
