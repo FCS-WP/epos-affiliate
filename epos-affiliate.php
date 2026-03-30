@@ -72,6 +72,7 @@ add_action( 'plugins_loaded', function () {
     // Admin setup.
     if ( is_admin() ) {
         EposAffiliate\Setup\AdminPage::init();
+        EposAffiliate\Setup\OrderMetaBox::init();
     }
 
     // Frontend shortcodes.

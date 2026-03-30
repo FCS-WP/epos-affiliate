@@ -75,6 +75,25 @@ class Installer {
                 KEY type (type),
                 KEY period_month (period_month)
             ) $charset_collate;
+
+            CREATE TABLE {$wpdb->prefix}epos_serial_numbers (
+                id bigint(20) NOT NULL AUTO_INCREMENT,
+                order_id bigint(20) unsigned NOT NULL,
+                bd_id bigint(20) DEFAULT NULL,
+                reseller_id bigint(20) DEFAULT NULL,
+                serial_number varchar(100) NOT NULL,
+                product_id bigint(20) unsigned DEFAULT NULL,
+                status varchar(20) NOT NULL DEFAULT 'assigned',
+                assigned_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                assigned_by bigint(20) unsigned DEFAULT NULL,
+                source varchar(20) NOT NULL DEFAULT 'manual',
+                PRIMARY KEY  (id),
+                UNIQUE KEY serial_number (serial_number),
+                KEY order_id (order_id),
+                KEY bd_id (bd_id),
+                KEY reseller_id (reseller_id),
+                KEY status (status)
+            ) $charset_collate;
         ";
 
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';

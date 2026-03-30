@@ -20,6 +20,7 @@ class RouteRegistrar {
         ExportRoutes::register();
         ProfileRoutes::register();
         AuthRoutes::register();
+        SerialNumberRoutes::register();
     }
 
     // ── Shared permission callbacks ──

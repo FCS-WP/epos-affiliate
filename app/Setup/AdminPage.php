@@ -13,8 +13,9 @@ class AdminPage {
         'epos-affiliate'              => 'Dashboard',
         'epos-affiliate-resellers'    => 'Resellers',
         'epos-affiliate-bds'          => 'BD Agents',
-        'epos-affiliate-commissions'  => 'Commissions',
-        'epos-affiliate-settings'     => 'Settings',
+        'epos-affiliate-commissions'    => 'Commissions',
+        'epos-affiliate-serial-numbers' => 'Serial Numbers',
+        'epos-affiliate-settings'       => 'Settings',
     ];
 
     public static function init() {
@@ -61,6 +62,7 @@ class AdminPage {
             'epos-affiliate_page_epos-affiliate-resellers',
             'epos-affiliate_page_epos-affiliate-bds',
             'epos-affiliate_page_epos-affiliate-commissions',
+            'epos-affiliate_page_epos-affiliate-serial-numbers',
             'epos-affiliate_page_epos-affiliate-settings',
         ];
 
@@ -77,8 +79,9 @@ class AdminPage {
             'epos-affiliate'              => 'dashboard',
             'epos-affiliate-resellers'    => 'resellers',
             'epos-affiliate-bds'          => 'bds',
-            'epos-affiliate-commissions'  => 'commissions',
-            'epos-affiliate-settings'     => 'settings',
+            'epos-affiliate-commissions'    => 'commissions',
+            'epos-affiliate-serial-numbers' => 'serial-numbers',
+            'epos-affiliate-settings'       => 'settings',
         ];
 
         return $map[ $page ] ?? 'dashboard';
