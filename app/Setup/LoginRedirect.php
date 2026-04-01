@@ -68,11 +68,12 @@ class LoginRedirect {
 
         $user = wp_get_current_user();
 
+        $login_url = home_url( '/my/login/' );
+
         if ( in_array( 'reseller_manager', $user->roles, true ) ) {
             $reseller = Reseller::find_by_user_id( $user->ID );
             if ( ! $reseller || $reseller->status !== 'active' ) {
                 wp_logout();
-                $login_url = self::get_custom_login_url();
                 wp_redirect( add_query_arg( 'account_disabled', '1', $login_url ) );
                 exit;
             }
@@ -82,7 +83,6 @@ class LoginRedirect {
             $bd = BD::find_by_user_id( $user->ID );
             if ( ! $bd || $bd->status !== 'active' ) {
                 wp_logout();
-                $login_url = self::get_custom_login_url();
                 wp_redirect( add_query_arg( 'account_disabled', '1', $login_url ) );
                 exit;
             }

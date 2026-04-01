@@ -3,9 +3,12 @@
 No active task. Ready for next assignment.
 
 ## Recently Completed
-- Reseller QR support (auto-create BD record, QR card on dashboard, backfill migration)
-- BD Dashboard — QR card + Total Orders in one row
-- "Number of units" + "Has achieved usage target" columns in order tables
-- Removed commission values from BD view
-- CSV export fixes (proper newlines, num_units column)
-- Reseller BD management (add/edit/deactivate BDs from reseller dashboard)
+- Security fix: inactive Reseller/BD accounts now blocked from dashboard access and API
+- `RouteRegistrar` permission callbacks check `status === 'active'` in DB
+- `LoginRedirect::block_inactive_accounts()` — logs out and redirects to `/my/login/`
+- Removed "By Revenue / By Volume" tabs from Reseller Performance
+- Removed "Performance Trend", "Usage Bonus", "Usage Target" columns
+- QR code dialog in Reseller Manage BDs page
+- Deactivate/reactivate BD with MUI confirmation dialogs
+- Added `api.delete()` to frontend client
+- Serial Numbers admin page (full CRUD + WC order metabox)

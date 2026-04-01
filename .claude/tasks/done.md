@@ -70,10 +70,49 @@
 - [x] Admin guide (create reseller, create BD, approve commission)
 - [x] CLAUDE.md — full architecture, API reference, implementation rules
 
-### UI/UX
+### Security & Access Control
+- [x] Inactive account blocking — deactivated Reseller/BD can no longer access dashboard or API
+- [x] `RouteRegistrar` permission callbacks check `status === 'active'` (not just WP capability)
+- [x] `LoginRedirect::block_inactive_accounts()` — logs out inactive users, redirects to `/my/login/?account_disabled=1`
+- [x] Admin bypass — admins skip status check in permission callbacks
+
+### Serial Numbers (Admin)
+- [x] DB table `epos_serial_numbers` — migration in `Installer.php`
+- [x] `SerialNumber` model — CRUD, uniqueness check, order lookup
+- [x] `SerialNumberController` — REST endpoints (list, assign, delete, bulk)
+- [x] `SerialNumberRoutes` — route registration with admin-only permissions
+- [x] Admin submenu page "Serial Numbers" — React SPA with DataGrid, assign dialog, search/filter
+- [x] WooCommerce order edit metabox — assign/view SNs directly from order edit page
+- [x] API documentation (`docs/api.md`)
+
+### Reseller BD Management
+- [x] Reseller can add new BDs from dashboard (`POST /my/bds`)
+- [x] Reseller can edit BD name (`PUT /my/bds/{id}`)
+- [x] Reseller can deactivate BD with MUI confirmation dialog
+- [x] Reseller can reactivate BD with MUI confirmation dialog
+- [x] QR code dialog — view QR for any BD from Manage BDs page
+- [x] `ResellerBDController` — full CRUD scoped to logged-in reseller's BDs
+- [x] `api.delete()` method added to frontend API client
+
+### UI/UX Enhancements
 - [x] Mobile-responsive layouts (all pages)
 - [x] Bottom navigation on mobile (BD + Reseller)
 - [x] Collapsible sidebar on desktop
 - [x] Custom login page (standalone, EPOS-branded)
 - [x] DataGrid with proper row heights, cell alignment
 - [x] Export CSV from all list pages
+- [x] Removed "By Revenue / By Volume" tabs from Reseller Performance
+- [x] Removed "Performance Trend" column from BD performance tables
+- [x] Removed "Usage Bonus" column from Reseller BD Orders
+- [x] Removed "Usage Target" column from Reseller BD Orders
+- [x] Removed commission values from BD view (sales commission hidden)
+- [x] "Number of Units" column in order tables + CSV exports
+
+### Bug Fixes
+- [x] MUI v7 + React 18 incompatibility — downgraded to MUI v6
+- [x] `api.delete` not a function — added `delete` method to frontend API client
+- [x] `ProfileController` stdClass array access — fixed `$reseller['name']` to `$reseller->name`
+- [x] Serial Numbers admin page blank — added page slug to `AdminPage.php`
+- [x] Reseller `/qr` route missing — added QR route for resellers in `RoleRouter`
+- [x] CSV export format — fixed single-line CSV output, added proper newlines
+- [x] Export button in BD Orders — fixed download endpoint
