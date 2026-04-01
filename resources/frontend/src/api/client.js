@@ -57,6 +57,10 @@ const api = {
     body: JSON.stringify(data),
   }),
 
+  delete: (endpoint) => request(endpoint, {
+    method: 'DELETE',
+  }),
+
   uploadFile: (endpoint, formData) => request(endpoint, {
     method: 'POST',
     body: formData,

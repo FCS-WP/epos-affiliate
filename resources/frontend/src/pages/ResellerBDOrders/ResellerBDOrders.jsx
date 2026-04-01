@@ -116,22 +116,6 @@ export default function ResellerBDOrders() {
       ),
     },
     {
-      field: 'usage_target_met',
-      headerName: 'USAGE TARGET',
-      width: 130,
-      headerAlign: 'center',
-      align: 'center',
-      renderCell: (params) => (
-        <Chip
-          label={params.value ? 'Yes' : 'No'}
-          size="small"
-          color={params.value ? 'success' : 'default'}
-          variant="outlined"
-          sx={{ fontWeight: 600, fontSize: '0.7rem' }}
-        />
-      ),
-    },
-    {
       field: 'commission',
       headerName: `SALES COMMISSION (${cs})`,
       width: 180,

@@ -24,9 +24,13 @@ import { alpha, useTheme } from "@mui/material/styles";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import BlockIcon from "@mui/icons-material/Block";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import SearchIcon from "@mui/icons-material/Search";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import DownloadIcon from "@mui/icons-material/Download";
+import ShareIcon from "@mui/icons-material/Share";
 import QrCode2Icon from "@mui/icons-material/QrCode2";
+import QRCode from "react-qr-code";
 import api from "../../api/client";
 import StatusChip from "../../components/StatusChip";
 
@@ -46,6 +50,11 @@ export default function ResellerBDs() {
     message: "",
     severity: "success",
   });
+  const [qrDialogBD, setQrDialogBD] = useState(null);
+  const [deactivateBD, setDeactivateBD] = useState(null);
+  const [deactivating, setDeactivating] = useState(false);
+  const [reactivateBD, setReactivateBD] = useState(null);
+  const [reactivating, setReactivating] = useState(false);
 
   // Form state
   const [formName, setFormName] = useState("");
@@ -113,19 +122,33 @@ export default function ResellerBDs() {
     }
   };
 
-  const handleDeactivate = async (bd) => {
-    if (
-      !confirm(
-        `Deactivate ${bd.name}? They will lose access to their dashboard.`,
-      )
-    )
-      return;
+  const handleDeactivateConfirm = async () => {
+    if (!deactivateBD) return;
+    setDeactivating(true);
     try {
-      await api.delete(`/my/bds/${bd.id}`);
-      showSnackbar(`${bd.name} has been deactivated.`);
+      await api.delete(`/my/bds/${deactivateBD.id}`);
+      showSnackbar(`${deactivateBD.name} has been deactivated.`);
+      setDeactivateBD(null);
       fetchBDs();
     } catch (err) {
       showSnackbar(err.message, "error");
+    } finally {
+      setDeactivating(false);
+    }
+  };
+
+  const handleReactivateConfirm = async () => {
+    if (!reactivateBD) return;
+    setReactivating(true);
+    try {
+      await api.put(`/my/bds/${reactivateBD.id}`, { name: reactivateBD.name, status: 'active' });
+      showSnackbar(`${reactivateBD.name} has been reactivated.`);
+      setReactivateBD(null);
+      fetchBDs();
+    } catch (err) {
+      showSnackbar(err.message, "error");
+    } finally {
+      setReactivating(false);
     }
   };
 
@@ -191,8 +214,8 @@ export default function ResellerBDs() {
       width: 100,
       sortable: false,
       renderCell: (params) => (
-        <Tooltip title="Copy QR link">
-          <IconButton size="small" onClick={() => handleCopyQR(params.row)}>
+        <Tooltip title="View QR Code">
+          <IconButton size="small" onClick={() => setQrDialogBD(params.row)}>
             <QrCode2Icon sx={{ fontSize: 20, color: "primary.main" }} />
           </IconButton>
         </Tooltip>
@@ -217,14 +240,24 @@ export default function ResellerBDs() {
               <EditIcon fontSize="small" />
             </IconButton>
           </Tooltip>
-          {params.row.status === "active" && (
+          {params.row.status === "active" ? (
             <Tooltip title="Deactivate">
               <IconButton
                 size="small"
                 color="error"
-                onClick={() => handleDeactivate(params.row)}
+                onClick={() => setDeactivateBD(params.row)}
               >
                 <BlockIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          ) : (
+            <Tooltip title="Reactivate">
+              <IconButton
+                size="small"
+                color="success"
+                onClick={() => setReactivateBD(params.row)}
+              >
+                <CheckCircleOutlineIcon fontSize="small" />
               </IconButton>
             </Tooltip>
           )}
@@ -298,15 +331,25 @@ export default function ResellerBDs() {
           >
             Edit
           </Button>
-          {bd.status === "active" && (
+          {bd.status === "active" ? (
             <Button
               size="small"
               variant="outlined"
               color="error"
               startIcon={<BlockIcon />}
-              onClick={() => handleDeactivate(bd)}
+              onClick={() => setDeactivateBD(bd)}
             >
               Deactivate
+            </Button>
+          ) : (
+            <Button
+              size="small"
+              variant="outlined"
+              color="success"
+              startIcon={<CheckCircleOutlineIcon />}
+              onClick={() => setReactivateBD(bd)}
+            >
+              Reactivate
             </Button>
           )}
         </Box>
@@ -502,6 +545,220 @@ export default function ResellerBDs() {
             startIcon={saving ? <CircularProgress size={18} /> : null}
           >
             {saving ? "Saving..." : editingBD ? "Update" : "Create BD"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Reactivate Confirmation Dialog */}
+      <Dialog
+        open={!!reactivateBD}
+        onClose={() => !reactivating && setReactivateBD(null)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 700 }}>
+          Reactivate BD Agent
+        </DialogTitle>
+        <DialogContent>
+          {reactivateBD && (
+            <Box>
+              <Typography variant="body2" sx={{ mb: 2 }}>
+                Are you sure you want to reactivate <strong>{reactivateBD.name}</strong>?
+              </Typography>
+              <Paper
+                variant="outlined"
+                sx={{
+                  p: 2,
+                  backgroundColor: alpha(theme.palette.secondary.main, 0.04),
+                  borderColor: alpha(theme.palette.secondary.main, 0.2),
+                }}
+              >
+                <Typography variant="body2" color="secondary.main" fontWeight={500}>
+                  This will:
+                </Typography>
+                <Box component="ul" sx={{ m: 0, pl: 2.5, mt: 0.5 }}>
+                  <Typography component="li" variant="body2" color="text.secondary">
+                    Restore their dashboard access
+                  </Typography>
+                  <Typography component="li" variant="body2" color="text.secondary">
+                    Re-enable their QR tracking code
+                  </Typography>
+                  <Typography component="li" variant="body2" color="text.secondary">
+                    Resume attributing new orders to this BD
+                  </Typography>
+                </Box>
+              </Paper>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setReactivateBD(null)} disabled={reactivating}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="success"
+            onClick={handleReactivateConfirm}
+            disabled={reactivating}
+            startIcon={reactivating ? <CircularProgress size={18} color="inherit" /> : <CheckCircleOutlineIcon />}
+          >
+            {reactivating ? "Reactivating..." : "Reactivate"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* QR Code Dialog */}
+      <Dialog
+        open={!!qrDialogBD}
+        onClose={() => setQrDialogBD(null)}
+        maxWidth="xs"
+        fullWidth
+      >
+        {qrDialogBD && (() => {
+          const qrUrl = `${config.homeUrl || window.location.origin}/my/qr/${qrDialogBD.qr_token}`;
+          const handleDownload = () => {
+            const svg = document.getElementById("qr-dialog-svg");
+            if (!svg) return;
+            const canvas = document.createElement("canvas");
+            canvas.width = 600;
+            canvas.height = 600;
+            const ctx = canvas.getContext("2d");
+            const data = new XMLSerializer().serializeToString(svg);
+            const img = new Image();
+            img.onload = () => {
+              ctx.fillStyle = "#ffffff";
+              ctx.fillRect(0, 0, 600, 600);
+              ctx.drawImage(img, 0, 0, 600, 600);
+              const a = document.createElement("a");
+              a.download = `qr-${qrDialogBD.tracking_code}.png`;
+              a.href = canvas.toDataURL("image/png");
+              a.click();
+            };
+            img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(data)));
+          };
+          return (
+            <>
+              <DialogTitle sx={{ textAlign: "center", pb: 0 }}>
+                <Typography variant="h6" fontWeight={700}>{qrDialogBD.name}</Typography>
+                <Chip
+                  label={qrDialogBD.tracking_code}
+                  size="small"
+                  sx={{
+                    mt: 0.5, fontWeight: 600, fontSize: "0.7rem", fontFamily: "monospace",
+                    backgroundColor: alpha(theme.palette.primary.main, 0.06),
+                    color: theme.palette.primary.main,
+                  }}
+                />
+              </DialogTitle>
+              <DialogContent sx={{ display: "flex", flexDirection: "column", alignItems: "center", pt: 3 }}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 3, borderRadius: 3,
+                    border: `2px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+                    backgroundColor: "#fff",
+                  }}
+                >
+                  <QRCode id="qr-dialog-svg" value={qrUrl} size={200} level="H" />
+                </Paper>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mt: 2, wordBreak: "break-all", textAlign: "center", maxWidth: 280 }}
+                >
+                  {qrUrl}
+                </Typography>
+              </DialogContent>
+              <DialogActions sx={{ px: 3, pb: 2.5, justifyContent: "center", gap: 1 }}>
+                <Button
+                  variant="outlined"
+                  startIcon={<ContentCopyIcon />}
+                  onClick={() => {
+                    navigator.clipboard.writeText(qrUrl);
+                    showSnackbar("QR link copied!");
+                  }}
+                >
+                  Copy Link
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<DownloadIcon />}
+                  onClick={handleDownload}
+                >
+                  Download
+                </Button>
+                {navigator.share && (
+                  <Button
+                    variant="outlined"
+                    startIcon={<ShareIcon />}
+                    onClick={() => navigator.share({ title: `QR - ${qrDialogBD.name}`, url: qrUrl })}
+                  >
+                    Share
+                  </Button>
+                )}
+              </DialogActions>
+            </>
+          );
+        })()}
+      </Dialog>
+
+      {/* Deactivate Confirmation Dialog */}
+      <Dialog
+        open={!!deactivateBD}
+        onClose={() => !deactivating && setDeactivateBD(null)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 700 }}>
+          Deactivate BD Agent
+        </DialogTitle>
+        <DialogContent>
+          {deactivateBD && (
+            <Box>
+              <Typography variant="body2" sx={{ mb: 2 }}>
+                Are you sure you want to deactivate <strong>{deactivateBD.name}</strong>?
+              </Typography>
+              <Paper
+                variant="outlined"
+                sx={{
+                  p: 2, mb: 2,
+                  backgroundColor: alpha(theme.palette.error.main, 0.04),
+                  borderColor: alpha(theme.palette.error.main, 0.2),
+                }}
+              >
+                <Typography variant="body2" color="error.main" fontWeight={500}>
+                  This will:
+                </Typography>
+                <Box component="ul" sx={{ m: 0, pl: 2.5, mt: 0.5 }}>
+                  <Typography component="li" variant="body2" color="text.secondary">
+                    Revoke their dashboard access
+                  </Typography>
+                  <Typography component="li" variant="body2" color="text.secondary">
+                    Disable their QR tracking code
+                  </Typography>
+                  <Typography component="li" variant="body2" color="text.secondary">
+                    Stop attributing new orders to this BD
+                  </Typography>
+                </Box>
+              </Paper>
+              <Typography variant="caption" color="text.secondary">
+                Existing orders and commissions will not be affected.
+              </Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setDeactivateBD(null)} disabled={deactivating}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleDeactivateConfirm}
+            disabled={deactivating}
+            startIcon={deactivating ? <CircularProgress size={18} color="inherit" /> : <BlockIcon />}
+          >
+            {deactivating ? "Deactivating..." : "Deactivate"}
           </Button>
         </DialogActions>
       </Dialog>

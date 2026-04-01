@@ -117,6 +117,12 @@ class ResellerBDController {
         if ( $request->get_param( 'name' ) ) {
             $data['name'] = sanitize_text_field( $request->get_param( 'name' ) );
         }
+        if ( $request->get_param( 'status' ) ) {
+            $status = sanitize_text_field( $request->get_param( 'status' ) );
+            if ( in_array( $status, [ 'active', 'inactive' ], true ) ) {
+                $data['status'] = $status;
+            }
+        }
 
         if ( ! empty( $data ) ) {
             BD::update( $id, $data );

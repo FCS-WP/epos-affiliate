@@ -4,6 +4,9 @@ namespace EposAffiliate\Setup;
 
 defined( 'ABSPATH' ) || exit;
 
+use EposAffiliate\Models\Reseller;
+use EposAffiliate\Models\BD;
+
 class LoginRedirect {
 
     public static function init() {
@@ -11,6 +14,7 @@ class LoginRedirect {
         add_filter( 'logout_redirect', [ self::class, 'redirect_after_logout' ], 10, 3 );
         add_action( 'admin_init', [ self::class, 'block_wp_admin' ] );
         add_action( 'template_redirect', [ self::class, 'protect_dashboard_pages' ] );
+        add_action( 'template_redirect', [ self::class, 'block_inactive_accounts' ] );
     }
 
     /**
@@ -51,6 +55,38 @@ class LoginRedirect {
         }
 
         return $redirect_to;
+    }
+
+    /**
+     * Block inactive reseller/BD accounts from accessing dashboard pages.
+     * Redirects to login with ?account_disabled=1 if their plugin record is inactive.
+     */
+    public static function block_inactive_accounts() {
+        if ( ! is_user_logged_in() ) {
+            return;
+        }
+
+        $user = wp_get_current_user();
+
+        if ( in_array( 'reseller_manager', $user->roles, true ) ) {
+            $reseller = Reseller::find_by_user_id( $user->ID );
+            if ( ! $reseller || $reseller->status !== 'active' ) {
+                wp_logout();
+                $login_url = self::get_custom_login_url();
+                wp_redirect( add_query_arg( 'account_disabled', '1', $login_url ) );
+                exit;
+            }
+        }
+
+        if ( in_array( 'bd_agent', $user->roles, true ) ) {
+            $bd = BD::find_by_user_id( $user->ID );
+            if ( ! $bd || $bd->status !== 'active' ) {
+                wp_logout();
+                $login_url = self::get_custom_login_url();
+                wp_redirect( add_query_arg( 'account_disabled', '1', $login_url ) );
+                exit;
+            }
+        }
     }
 
     /**

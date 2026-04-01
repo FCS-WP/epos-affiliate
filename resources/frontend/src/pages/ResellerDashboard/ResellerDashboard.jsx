@@ -14,8 +14,6 @@ import Alert from '@mui/material/Alert';
 import Chip from '@mui/material/Chip';
 import Skeleton from '@mui/material/Skeleton';
 import CircularProgress from '@mui/material/CircularProgress';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
 import Avatar from '@mui/material/Avatar';
 import LinearProgress from '@mui/material/LinearProgress';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -49,7 +47,6 @@ export default function ResellerDashboard() {
   const [dateFrom, setDateFrom] = useState(null);
   const [dateTo, setDateTo] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortTab, setSortTab] = useState(0); // 0 = by revenue, 1 = by volume
 
   const fetchDashboard = useCallback(async () => {
     setLoading(true);
@@ -98,7 +95,7 @@ export default function ResellerDashboard() {
 
   // Sort
   const sortedBDs = [...filteredBDs].sort((a, b) => {
-    if (sortTab === 0) return (b.revenue || 0) - (a.revenue || 0);
+    return (b.revenue || 0) - (a.revenue || 0);
     return (b.orders || 0) - (a.orders || 0);
   });
 
@@ -175,47 +172,6 @@ export default function ResellerDashboard() {
           {Number(params.value || 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
         </Typography>
       ),
-    },
-    {
-      field: 'performance',
-      headerName: 'PERFORMANCE TREND',
-      flex: 1,
-      minWidth: 160,
-      sortable: false,
-      renderCell: (params) => {
-        const revenue = params.row.revenue || 0;
-        const pct = maxRevenue > 0 ? (revenue / maxRevenue) * 100 : 0;
-        const isPositive = pct >= 50;
-        return (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
-            <LinearProgress
-              variant="determinate"
-              value={pct}
-              sx={{
-                flex: 1,
-                height: 6,
-                borderRadius: 3,
-                backgroundColor: alpha(isPositive ? theme.palette.secondary.main : theme.palette.error.main, 0.1),
-                '& .MuiLinearProgress-bar': {
-                  borderRadius: 3,
-                  backgroundColor: isPositive ? theme.palette.secondary.main : theme.palette.error.main,
-                },
-              }}
-            />
-            <Chip
-              label={`${pct.toFixed(1)}%`}
-              size="small"
-              sx={{
-                fontWeight: 600,
-                fontSize: '0.7rem',
-                height: 22,
-                backgroundColor: alpha(isPositive ? theme.palette.secondary.main : theme.palette.error.main, 0.1),
-                color: isPositive ? theme.palette.secondary.main : theme.palette.error.main,
-              }}
-            />
-          </Box>
-        );
-      },
     },
     {
       field: 'last_sale_date',
@@ -498,30 +454,9 @@ export default function ResellerDashboard() {
       </Box>
 
       {/* ── Agent Performance ── */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <EmojiEventsIcon sx={{ color: 'primary.main' }} />
-          <Typography variant="h6">Agent Performance Rankings</Typography>
-        </Box>
-        <Tabs
-          value={sortTab}
-          onChange={(_, v) => setSortTab(v)}
-          sx={{
-            minHeight: 36,
-            '& .MuiTab-root': {
-              minHeight: 36,
-              py: 0,
-              px: 2,
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-            },
-          }}
-        >
-          <Tab label="By Revenue" />
-          <Tab label="By Volume" />
-        </Tabs>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+        <EmojiEventsIcon sx={{ color: 'primary.main' }} />
+        <Typography variant="h6">Agent Performance Rankings</Typography>
       </Box>
 
       {loading ? (
