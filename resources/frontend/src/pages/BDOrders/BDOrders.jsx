@@ -9,6 +9,7 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Alert from "@mui/material/Alert";
 import CircularProgress from "@mui/material/CircularProgress";
+import Chip from "@mui/material/Chip";
 import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
 import Skeleton from "@mui/material/Skeleton";
@@ -22,7 +23,7 @@ import dayjs from "dayjs";
 import api from "../../api/client";
 import StatusChip from "../../components/StatusChip";
 
-const cs = (window.eposAffiliate || {}).currencySymbol || 'RM';
+const cs = (window.eposAffiliate || {}).currencySymbol || "RM";
 
 export default function BDOrders() {
   const theme = useTheme();
@@ -91,7 +92,7 @@ export default function BDOrders() {
     {
       field: "order_id",
       headerName: "ORDER ID",
-      flex: 1,
+      flex: 180,
       renderCell: (params) => (
         <Typography variant="body2" fontWeight={600} color="primary">
           #{params.value}
@@ -101,7 +102,7 @@ export default function BDOrders() {
     {
       field: "date",
       headerName: "DATE",
-      width: 180,
+      flex: 1,
       valueFormatter: (value) =>
         value ? dayjs(value).format("MMM DD, YYYY") : "-",
     },
@@ -113,7 +114,7 @@ export default function BDOrders() {
       align: "left",
       renderCell: (params) => (
         <Typography variant="body2" fontWeight={500}>
-          RM{" "}
+          {cs}{" "}
           {Number(params.value).toLocaleString("en-MY", {
             minimumFractionDigits: 2,
           })}
@@ -121,18 +122,31 @@ export default function BDOrders() {
       ),
     },
     {
-      field: "commission",
-      headerName: "COMMISSION",
+      field: "num_units",
+      headerName: "NUMBER OF UNITS",
+      width: 100,
       headerAlign: "left",
-      width: 150,
       align: "left",
       renderCell: (params) => (
-        <Typography variant="body2" fontWeight={600} color="secondary">
-          RM{" "}
-          {Number(params.value).toLocaleString("en-MY", {
-            minimumFractionDigits: 2,
-          })}
+        <Typography variant="body2" fontWeight={600}>
+          {(params.value || 0).toLocaleString()}
         </Typography>
+      ),
+    },
+    {
+      field: "usage_target_met",
+      headerName: "USAGE TARGET",
+      width: 130,
+      headerAlign: "center",
+      align: "center",
+      renderCell: (params) => (
+        <Chip
+          label={params.value ? "Yes" : "No"}
+          size="small"
+          color={params.value ? "success" : "default"}
+          variant="outlined"
+          sx={{ fontWeight: 600, fontSize: "0.7rem" }}
+        />
       ),
     },
     {
@@ -178,7 +192,7 @@ export default function BDOrders() {
           {order.date ? dayjs(order.date).format("MMM DD, YYYY") : "-"}
         </Typography>
 
-        {/* Value + Commission */}
+        {/* Value */}
         <Box sx={{ display: "flex", gap: 3 }}>
           <Box>
             <Typography
@@ -193,7 +207,7 @@ export default function BDOrders() {
               Value
             </Typography>
             <Typography variant="body1" fontWeight={700}>
-              RM{" "}
+              {cs}{" "}
               {Number(order.value).toLocaleString("en-MY", {
                 minimumFractionDigits: 2,
               })}
@@ -209,13 +223,10 @@ export default function BDOrders() {
                 letterSpacing: "0.05em",
               }}
             >
-              Commission
+              Units
             </Typography>
-            <Typography variant="body1" fontWeight={700} color="secondary">
-              RM{" "}
-              {Number(order.commission).toLocaleString("en-MY", {
-                minimumFractionDigits: 2,
-              })}
+            <Typography variant="body1" fontWeight={700}>
+              {order.num_units || 0}
             </Typography>
           </Box>
         </Box>

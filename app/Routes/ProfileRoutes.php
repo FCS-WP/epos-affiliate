@@ -29,5 +29,13 @@ class ProfileRoutes {
                 'permission_callback' => [ RouteRegistrar::class, 'can_view_own_profile' ],
             ],
         ] );
+
+        register_rest_route( RouteRegistrar::API_NAMESPACE, '/profile/password', [
+            [
+                'methods'             => 'PUT',
+                'callback'            => [ ProfileController::class, 'change_password' ],
+                'permission_callback' => [ RouteRegistrar::class, 'can_view_own_profile' ],
+            ],
+        ] );
     }
 }

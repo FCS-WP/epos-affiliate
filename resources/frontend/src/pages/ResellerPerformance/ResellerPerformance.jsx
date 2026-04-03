@@ -161,8 +161,8 @@ export default function ResellerPerformance() {
     },
     {
       field: 'sales_commission',
-      headerName: `COMMISSION (${cs})`,
-      width: 160,
+      headerName: `SALES COMMISSION (${cs})`,
+      width: 180,
       headerAlign: 'left',
       align: 'left',
       renderCell: (params) => (
@@ -172,41 +172,28 @@ export default function ResellerPerformance() {
       ),
     },
     {
-      field: 'performance',
-      headerName: 'PERFORMANCE',
-      flex: 1,
-      minWidth: 150,
-      sortable: false,
-      renderCell: (params) => {
-        const revenue = params.row.revenue || 0;
-        const pct = maxRevenue > 0 ? (revenue / maxRevenue) * 100 : 0;
-        const isPositive = pct >= 50;
-        return (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
-            <LinearProgress
-              variant="determinate"
-              value={pct}
-              sx={{
-                flex: 1, height: 6, borderRadius: 3,
-                backgroundColor: alpha(isPositive ? theme.palette.secondary.main : theme.palette.error.main, 0.1),
-                '& .MuiLinearProgress-bar': {
-                  borderRadius: 3,
-                  backgroundColor: isPositive ? theme.palette.secondary.main : theme.palette.error.main,
-                },
-              }}
-            />
-            <Chip
-              label={`${pct.toFixed(1)}%`}
-              size="small"
-              sx={{
-                fontWeight: 600, fontSize: '0.7rem', height: 22,
-                backgroundColor: alpha(isPositive ? theme.palette.secondary.main : theme.palette.error.main, 0.1),
-                color: isPositive ? theme.palette.secondary.main : theme.palette.error.main,
-              }}
-            />
-          </Box>
-        );
-      },
+      field: 'num_units',
+      headerName: 'NUMBER OF UNITS',
+      width: 100,
+      headerAlign: 'left',
+      align: 'left',
+      renderCell: (params) => (
+        <Typography variant="body2" fontWeight={600}>
+          {(params.value || 0).toLocaleString()}
+        </Typography>
+      ),
+    },
+    {
+      field: 'usage_bonus',
+      headerName: `USAGE BONUS (${cs})`,
+      width: 160,
+      headerAlign: 'left',
+      align: 'left',
+      renderCell: (params) => (
+        <Typography variant="body2" fontWeight={600}>
+          {cs} {Number(params.value || 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
+        </Typography>
+      ),
     },
     {
       field: 'last_sale_date',

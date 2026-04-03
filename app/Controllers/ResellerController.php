@@ -5,6 +5,9 @@ namespace EposAffiliate\Controllers;
 defined( 'ABSPATH' ) || exit;
 
 use EposAffiliate\Models\Reseller;
+use EposAffiliate\Models\BD;
+use EposAffiliate\Services\CouponService;
+use EposAffiliate\Services\EmailService;
 use WP_REST_Request;
 use WP_REST_Response;
 
@@ -16,7 +19,23 @@ class ResellerController {
             $args['status'] = $request->get_param( 'status' );
         }
 
-        return new WP_REST_Response( Reseller::all( $args ), 200 );
+        $resellers = Reseller::all( $args );
+
+        // Enrich each reseller with their auto-created BD record's QR data.
+        foreach ( $resellers as $reseller ) {
+            $reseller->qr_token      = null;
+            $reseller->tracking_code = null;
+
+            if ( $reseller->wp_user_id ) {
+                $bd = BD::find_by_user_id( $reseller->wp_user_id );
+                if ( $bd ) {
+                    $reseller->qr_token      = $bd->qr_token;
+                    $reseller->tracking_code = $bd->tracking_code;
+                }
+            }
+        }
+
+        return new WP_REST_Response( $resellers, 200 );
     }
 
     public static function show( WP_REST_Request $request ) {
@@ -24,6 +43,17 @@ class ResellerController {
 
         if ( ! $reseller ) {
             return new WP_REST_Response( [ 'message' => 'Reseller not found.' ], 404 );
+        }
+
+        // Enrich with QR data from auto-created BD record.
+        $reseller->qr_token      = null;
+        $reseller->tracking_code = null;
+        if ( $reseller->wp_user_id ) {
+            $bd = BD::find_by_user_id( $reseller->wp_user_id );
+            if ( $bd ) {
+                $reseller->qr_token      = $bd->qr_token;
+                $reseller->tracking_code = $bd->tracking_code;
+            }
         }
 
         return new WP_REST_Response( $reseller, 200 );
@@ -60,8 +90,8 @@ class ResellerController {
                 return new WP_REST_Response( [ 'message' => $wp_user_id->get_error_message() ], 400 );
             }
 
-            // Send credentials email.
-            wp_new_user_notification( $wp_user_id, null, 'user' );
+            // Send custom welcome email with login URL to affiliate portal.
+            EmailService::send_reseller_welcome( $wp_user_id, $name, $password );
         }
 
         $id = Reseller::create( [
@@ -72,6 +102,26 @@ class ResellerController {
 
         if ( ! $id ) {
             return new WP_REST_Response( [ 'message' => 'Failed to create reseller.' ], 500 );
+        }
+
+        // Auto-create a BD record for the Reseller so they can also use QR tracking.
+        if ( $wp_user_id ) {
+            $bd_code       = strtoupper( $slug );
+            $tracking_code = 'BD-' . $bd_code . '-OWNER';
+
+            // Only create if not already existing.
+            if ( ! BD::find_by_tracking_code( $tracking_code ) ) {
+                $bd_id = BD::create( [
+                    'reseller_id'   => $id,
+                    'wp_user_id'    => $wp_user_id,
+                    'name'          => $name,
+                    'tracking_code' => $tracking_code,
+                ] );
+
+                if ( $bd_id ) {
+                    CouponService::create_tracking_coupon( $tracking_code, $wp_user_id, $id );
+                }
+            }
         }
 
         return new WP_REST_Response( Reseller::find( $id ), 201 );

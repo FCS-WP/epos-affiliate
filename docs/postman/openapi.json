@@ -1,0 +1,617 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "EPOS Affiliate API",
+    "description": "QR-code-based sales attribution and commission tracking for BD resellers.",
+    "version": "1.0.0",
+    "contact": { "name": "EPOS", "url": "https://www.epos.com" }
+  },
+  "servers": [
+    {
+      "url": "https://www.epos.com/my/wp-json/epos-affiliate/v1",
+      "description": "Production"
+    },
+    {
+      "url": "http://localhost/wp-json/epos-affiliate/v1",
+      "description": "Local Development"
+    }
+  ],
+  "security": [{ "wpNonce": [] }],
+  "components": {
+    "securitySchemes": {
+      "wpNonce": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-WP-Nonce",
+        "description": "WordPress REST API nonce"
+      },
+      "basicAuth": {
+        "type": "http",
+        "scheme": "basic",
+        "description": "WP Application Password (username + app password)"
+      }
+    }
+  },
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Login",
+        "description": "Authenticate BD agent or Reseller manager",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["login", "password"],
+                "properties": {
+                  "login": { "type": "string", "example": "bd-acme-js001" },
+                  "password": { "type": "string", "example": "secret123" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "redirect": { "type": "string" },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "integer" },
+                        "display_name": { "type": "string" },
+                        "role": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Invalid credentials" }
+        }
+      }
+    },
+    "/resellers": {
+      "get": {
+        "tags": ["Resellers"],
+        "summary": "List resellers",
+        "parameters": [
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["active", "inactive"] } }
+        ],
+        "responses": { "200": { "description": "Array of resellers" } }
+      },
+      "post": {
+        "tags": ["Resellers"],
+        "summary": "Create reseller",
+        "description": "Creates reseller + WP user + auto BD record",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "slug"],
+                "properties": {
+                  "name": { "type": "string", "example": "ACME Corp" },
+                  "slug": { "type": "string", "example": "acme" },
+                  "email": { "type": "string", "example": "manager@acme.com" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "201": { "description": "Reseller created" } }
+      }
+    },
+    "/resellers/{id}": {
+      "get": {
+        "tags": ["Resellers"],
+        "summary": "Get reseller",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Reseller object" } }
+      },
+      "put": {
+        "tags": ["Resellers"],
+        "summary": "Update reseller",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "slug": { "type": "string" },
+                  "status": { "type": "string", "enum": ["active", "inactive"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Updated reseller" } }
+      },
+      "delete": {
+        "tags": ["Resellers"],
+        "summary": "Deactivate reseller",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Reseller deactivated" } }
+      }
+    },
+    "/bds": {
+      "get": {
+        "tags": ["BD Agents"],
+        "summary": "List BDs",
+        "parameters": [
+          { "name": "reseller_id", "in": "query", "schema": { "type": "integer" } },
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["active", "inactive"] } }
+        ],
+        "responses": { "200": { "description": "Array of BDs" } }
+      },
+      "post": {
+        "tags": ["BD Agents"],
+        "summary": "Create BD",
+        "description": "Creates BD + WP user + QR token + WC coupon",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "reseller_id", "bd_code"],
+                "properties": {
+                  "name": { "type": "string", "example": "John Smith" },
+                  "reseller_id": { "type": "integer", "example": 1 },
+                  "bd_code": { "type": "string", "example": "JS001" },
+                  "email": { "type": "string", "example": "john@acme.com" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "201": { "description": "BD created" } }
+      }
+    },
+    "/bds/{id}": {
+      "get": {
+        "tags": ["BD Agents"],
+        "summary": "Get BD",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "BD object" } }
+      },
+      "put": {
+        "tags": ["BD Agents"],
+        "summary": "Update BD",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "status": { "type": "string", "enum": ["active", "inactive"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Updated BD" } }
+      },
+      "delete": {
+        "tags": ["BD Agents"],
+        "summary": "Deactivate BD",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "BD deactivated" } }
+      }
+    },
+    "/my/bds": {
+      "get": {
+        "tags": ["BD Agents (Reseller)"],
+        "summary": "List my BDs",
+        "description": "Reseller-scoped: only own BDs",
+        "responses": { "200": { "description": "Array of BDs" } }
+      },
+      "post": {
+        "tags": ["BD Agents (Reseller)"],
+        "summary": "Create BD under my reseller",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "bd_code", "email"],
+                "properties": {
+                  "name": { "type": "string", "example": "Jane Doe" },
+                  "bd_code": { "type": "string", "example": "JD001" },
+                  "email": { "type": "string", "example": "jane@acme.com" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "201": { "description": "BD created" } }
+      }
+    },
+    "/my/bds/{id}": {
+      "put": {
+        "tags": ["BD Agents (Reseller)"],
+        "summary": "Update my BD",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": {
+          "content": { "application/json": { "schema": { "type": "object", "properties": { "name": { "type": "string" } } } } }
+        },
+        "responses": { "200": { "description": "Updated BD" } }
+      },
+      "delete": {
+        "tags": ["BD Agents (Reseller)"],
+        "summary": "Deactivate my BD",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "BD deactivated" } }
+      }
+    },
+    "/commissions": {
+      "get": {
+        "tags": ["Commissions"],
+        "summary": "List commissions",
+        "parameters": [
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["pending", "approved", "paid", "voided"] } },
+          { "name": "type", "in": "query", "schema": { "type": "string", "enum": ["sales", "usage_bonus"] } },
+          { "name": "bd_id", "in": "query", "schema": { "type": "integer" } },
+          { "name": "reseller_id", "in": "query", "schema": { "type": "integer" } },
+          { "name": "period_month", "in": "query", "schema": { "type": "string", "example": "2026-03" } }
+        ],
+        "responses": { "200": { "description": "Array of commissions" } }
+      }
+    },
+    "/commissions/{id}": {
+      "put": {
+        "tags": ["Commissions"],
+        "summary": "Update commission status",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["status"],
+                "properties": {
+                  "status": { "type": "string", "enum": ["pending", "approved", "paid", "voided"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Updated commission" } }
+      }
+    },
+    "/commissions/bulk": {
+      "post": {
+        "tags": ["Commissions"],
+        "summary": "Bulk update commission statuses",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["ids", "status"],
+                "properties": {
+                  "ids": { "type": "array", "items": { "type": "integer" }, "example": [1, 2, 3] },
+                  "status": { "type": "string", "enum": ["pending", "approved", "paid", "voided"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Bulk update result" } }
+      }
+    },
+    "/dashboard/admin": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Admin dashboard KPIs + chart + transactions",
+        "responses": { "200": { "description": "Dashboard data" } }
+      }
+    },
+    "/dashboard/reseller": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Reseller dashboard (scoped to own data)",
+        "parameters": [
+          { "name": "date_from", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "date_to", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "bd_id", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "Reseller dashboard data" } }
+      }
+    },
+    "/dashboard/reseller/export": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Export reseller report as CSV",
+        "parameters": [
+          { "name": "date_from", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "date_to", "in": "query", "schema": { "type": "string", "format": "date" } }
+        ],
+        "responses": { "200": { "description": "CSV file download" } }
+      }
+    },
+    "/dashboard/reseller/bd/{bd_id}/orders": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Orders for a specific BD (reseller view)",
+        "parameters": [
+          { "name": "bd_id", "in": "path", "required": true, "schema": { "type": "integer" } },
+          { "name": "date_from", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "date_to", "in": "query", "schema": { "type": "string", "format": "date" } }
+        ],
+        "responses": { "200": { "description": "BD orders data" } }
+      }
+    },
+    "/dashboard/reseller/bd/{bd_id}/orders/export": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Export BD orders as CSV (reseller view)",
+        "parameters": [
+          { "name": "bd_id", "in": "path", "required": true, "schema": { "type": "integer" } },
+          { "name": "date_from", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "date_to", "in": "query", "schema": { "type": "string", "format": "date" } }
+        ],
+        "responses": { "200": { "description": "CSV file download" } }
+      }
+    },
+    "/dashboard/bd": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "BD agent dashboard (own data only)",
+        "parameters": [
+          { "name": "date_from", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "date_to", "in": "query", "schema": { "type": "string", "format": "date" } }
+        ],
+        "responses": { "200": { "description": "BD dashboard data" } }
+      }
+    },
+    "/dashboard/bd/export": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Export BD orders as CSV",
+        "parameters": [
+          { "name": "date_from", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "date_to", "in": "query", "schema": { "type": "string", "format": "date" } }
+        ],
+        "responses": { "200": { "description": "CSV file download" } }
+      }
+    },
+    "/serial-numbers": {
+      "get": {
+        "tags": ["Serial Numbers"],
+        "summary": "List serial numbers",
+        "parameters": [
+          { "name": "search", "in": "query", "schema": { "type": "string" }, "description": "Search by SN or order ID" },
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["assigned", "activated", "returned"] } },
+          { "name": "order_id", "in": "query", "schema": { "type": "integer" } },
+          { "name": "bd_id", "in": "query", "schema": { "type": "integer" } },
+          { "name": "reseller_id", "in": "query", "schema": { "type": "integer" } },
+          { "name": "date_from", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "date_to", "in": "query", "schema": { "type": "string", "format": "date" } }
+        ],
+        "responses": { "200": { "description": "Array of serial numbers" } }
+      },
+      "post": {
+        "tags": ["Serial Numbers"],
+        "summary": "Assign serial number to order",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["order_id", "serial_number"],
+                "properties": {
+                  "order_id": { "type": "integer", "example": 2386 },
+                  "serial_number": { "type": "string", "example": "SN-ABC-001" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Serial number assigned" },
+          "400": { "description": "Validation error (duplicate SN, wrong order status, units full)" }
+        }
+      }
+    },
+    "/serial-numbers/order/{order_id}": {
+      "get": {
+        "tags": ["Serial Numbers"],
+        "summary": "Get order details + assigned serial numbers",
+        "parameters": [{ "name": "order_id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Order serial number details" } }
+      }
+    },
+    "/serial-numbers/check/{serial_number}": {
+      "get": {
+        "tags": ["Serial Numbers"],
+        "summary": "Check if serial number exists",
+        "parameters": [{ "name": "serial_number", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": {
+            "description": "Uniqueness check result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "exists": { "type": "boolean" },
+                    "order_id": { "type": "integer", "nullable": true }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/serial-numbers/bulk": {
+      "post": {
+        "tags": ["Serial Numbers"],
+        "summary": "Bulk assign serial numbers",
+        "description": "For API integrations and CSV imports. Each item validated independently.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["items"],
+                "properties": {
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": ["order_id", "serial_number"],
+                      "properties": {
+                        "order_id": { "type": "integer", "example": 2386 },
+                        "serial_number": { "type": "string", "example": "SN-ABC-001" },
+                        "source": { "type": "string", "default": "api" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "At least one item created" },
+          "400": { "description": "All items failed" }
+        }
+      }
+    },
+    "/serial-numbers/{id}": {
+      "delete": {
+        "tags": ["Serial Numbers"],
+        "summary": "Remove serial number",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Serial number removed" } }
+      }
+    },
+    "/profile": {
+      "get": {
+        "tags": ["Profile"],
+        "summary": "Get current user profile",
+        "description": "Returns role-specific fields (reseller info, BD tracking code, QR URL)",
+        "responses": { "200": { "description": "Profile data" } }
+      },
+      "put": {
+        "tags": ["Profile"],
+        "summary": "Update profile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "email": { "type": "string" },
+                  "phone": { "type": "string" },
+                  "bank_name": { "type": "string" },
+                  "bank_account_number": { "type": "string" },
+                  "bank_account_holder": { "type": "string" },
+                  "address_line_1": { "type": "string" },
+                  "address_line_2": { "type": "string" },
+                  "city": { "type": "string" },
+                  "state": { "type": "string" },
+                  "postcode": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Updated profile" } }
+      }
+    },
+    "/profile/photo": {
+      "post": {
+        "tags": ["Profile"],
+        "summary": "Upload profile photo",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["photo"],
+                "properties": {
+                  "photo": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Photo uploaded" } }
+      }
+    },
+    "/settings": {
+      "get": {
+        "tags": ["Settings"],
+        "summary": "Get plugin settings",
+        "responses": { "200": { "description": "Settings object" } }
+      },
+      "put": {
+        "tags": ["Settings"],
+        "summary": "Update plugin settings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "product_id": { "type": "integer", "example": 2174 },
+                  "sales_commission_rate": { "type": "number", "example": 10, "minimum": 0, "maximum": 100 }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Updated settings" } }
+      }
+    },
+    "/export/commissions": {
+      "get": {
+        "tags": ["Exports"],
+        "summary": "Export commissions as CSV",
+        "parameters": [
+          { "name": "status", "in": "query", "schema": { "type": "string" } },
+          { "name": "type", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "CSV file download" } }
+      }
+    },
+    "/export/attributions": {
+      "get": {
+        "tags": ["Exports"],
+        "summary": "Export attributions as CSV",
+        "parameters": [
+          { "name": "reseller_id", "in": "query", "schema": { "type": "integer" } },
+          { "name": "bd_id", "in": "query", "schema": { "type": "integer" } },
+          { "name": "date_from", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "date_to", "in": "query", "schema": { "type": "string", "format": "date" } }
+        ],
+        "responses": { "200": { "description": "CSV file download" } }
+      }
+    }
+  }
+}

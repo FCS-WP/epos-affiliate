@@ -7,6 +7,7 @@ defined( 'ABSPATH' ) || exit;
 use EposAffiliate\Models\BD;
 use EposAffiliate\Models\Reseller;
 use EposAffiliate\Services\CouponService;
+use EposAffiliate\Services\EmailService;
 use WP_REST_Request;
 use WP_REST_Response;
 
@@ -79,7 +80,7 @@ class BDController {
                 return new WP_REST_Response( [ 'message' => $wp_user_id->get_error_message() ], 400 );
             }
 
-            wp_new_user_notification( $wp_user_id, null, 'user' );
+            EmailService::send_bd_welcome( $wp_user_id, $name, $password, $reseller->name );
         }
 
         // Create BD record.

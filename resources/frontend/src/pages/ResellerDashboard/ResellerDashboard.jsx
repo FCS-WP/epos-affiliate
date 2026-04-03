@@ -14,8 +14,6 @@ import Alert from '@mui/material/Alert';
 import Chip from '@mui/material/Chip';
 import Skeleton from '@mui/material/Skeleton';
 import CircularProgress from '@mui/material/CircularProgress';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
 import Avatar from '@mui/material/Avatar';
 import LinearProgress from '@mui/material/LinearProgress';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -31,9 +29,9 @@ import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import QrCode2Icon from '@mui/icons-material/QrCode2';
 import dayjs from 'dayjs';
 import api from '../../api/client';
-import StatusChip from '../../components/StatusChip';
 
 const config = window.eposAffiliate || {};
 const cs = config.currencySymbol || 'RM';
@@ -43,12 +41,12 @@ export default function ResellerDashboard() {
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [dashboard, setDashboard] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dateFrom, setDateFrom] = useState(null);
   const [dateTo, setDateTo] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortTab, setSortTab] = useState(0); // 0 = by revenue, 1 = by volume
 
   const fetchDashboard = useCallback(async () => {
     setLoading(true);
@@ -67,6 +65,11 @@ export default function ResellerDashboard() {
   }, [dateFrom, dateTo]);
 
   useEffect(() => { fetchDashboard(); }, [fetchDashboard]);
+
+  // Fetch profile to get QR tracking info
+  useEffect(() => {
+    api.get('/profile').then(setProfile).catch(() => {});
+  }, []);
 
   const handleExport = () => {
     const params = {};
@@ -92,14 +95,12 @@ export default function ResellerDashboard() {
 
   // Sort
   const sortedBDs = [...filteredBDs].sort((a, b) => {
-    if (sortTab === 0) return (b.revenue || 0) - (a.revenue || 0);
+    return (b.revenue || 0) - (a.revenue || 0);
     return (b.orders || 0) - (a.orders || 0);
   });
 
   // Max revenue for progress bars
   const maxRevenue = Math.max(...bds.map((bd) => bd.revenue || 0), 1);
-
-  const userName = config.userName || 'Manager';
 
   const columns = [
     {
@@ -171,47 +172,6 @@ export default function ResellerDashboard() {
           {Number(params.value || 0).toLocaleString('en-MY', { minimumFractionDigits: 2 })}
         </Typography>
       ),
-    },
-    {
-      field: 'performance',
-      headerName: 'PERFORMANCE TREND',
-      flex: 1,
-      minWidth: 160,
-      sortable: false,
-      renderCell: (params) => {
-        const revenue = params.row.revenue || 0;
-        const pct = maxRevenue > 0 ? (revenue / maxRevenue) * 100 : 0;
-        const isPositive = pct >= 50;
-        return (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
-            <LinearProgress
-              variant="determinate"
-              value={pct}
-              sx={{
-                flex: 1,
-                height: 6,
-                borderRadius: 3,
-                backgroundColor: alpha(isPositive ? theme.palette.secondary.main : theme.palette.error.main, 0.1),
-                '& .MuiLinearProgress-bar': {
-                  borderRadius: 3,
-                  backgroundColor: isPositive ? theme.palette.secondary.main : theme.palette.error.main,
-                },
-              }}
-            />
-            <Chip
-              label={`${pct.toFixed(1)}%`}
-              size="small"
-              sx={{
-                fontWeight: 600,
-                fontSize: '0.7rem',
-                height: 22,
-                backgroundColor: alpha(isPositive ? theme.palette.secondary.main : theme.palette.error.main, 0.1),
-                color: isPositive ? theme.palette.secondary.main : theme.palette.error.main,
-              }}
-            />
-          </Box>
-        );
-      },
     },
     {
       field: 'last_sale_date',
@@ -339,6 +299,40 @@ export default function ResellerDashboard() {
         </Box>
       </Box>
 
+      {/* ── QR Tracking Card (if reseller has a BD record) ── */}
+      {profile?.tracking_code && (
+        <Card
+          sx={{
+            mb: 3,
+            border: `2px solid ${alpha(theme.palette.secondary.main, 0.2)}`,
+            background: `linear-gradient(135deg, ${alpha(theme.palette.secondary.main, 0.04)} 0%, ${alpha(theme.palette.primary.main, 0.02)} 100%)`,
+          }}
+        >
+          <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 }, display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box
+              sx={{
+                width: 48, height: 48, borderRadius: 2,
+                backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}
+            >
+              <QrCode2Icon sx={{ fontSize: 28, color: 'primary.main' }} />
+            </Box>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.6rem' }}>
+                Your Tracking ID: {profile.tracking_code}
+              </Typography>
+              <Typography variant="subtitle2" fontWeight={700} color="primary" sx={{ lineHeight: 1.3 }}>
+                Your QR Code
+              </Typography>
+            </Box>
+            <Button variant="contained" size="small" onClick={() => navigate('/qr')} sx={{ flexShrink: 0 }}>
+              View QR
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* ── KPI Cards ── */}
       {loading ? (
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: '1fr 1fr 1fr' }, gap: 2, mb: 4 }}>
@@ -460,30 +454,9 @@ export default function ResellerDashboard() {
       </Box>
 
       {/* ── Agent Performance ── */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <EmojiEventsIcon sx={{ color: 'primary.main' }} />
-          <Typography variant="h6">Agent Performance Rankings</Typography>
-        </Box>
-        <Tabs
-          value={sortTab}
-          onChange={(_, v) => setSortTab(v)}
-          sx={{
-            minHeight: 36,
-            '& .MuiTab-root': {
-              minHeight: 36,
-              py: 0,
-              px: 2,
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-            },
-          }}
-        >
-          <Tab label="By Revenue" />
-          <Tab label="By Volume" />
-        </Tabs>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+        <EmojiEventsIcon sx={{ color: 'primary.main' }} />
+        <Typography variant="h6">Agent Performance Rankings</Typography>
       </Box>
 
       {loading ? (

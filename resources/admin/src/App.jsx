@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard/Dashboard';
 import ResellerList from './pages/Resellers/ResellerList';
 import BDList from './pages/BDs/BDList';
 import CommissionList from './pages/Commissions/CommissionList';
+import SerialNumberList from './pages/SerialNumbers/SerialNumberList';
 import Settings from './pages/Settings/Settings';
 
 const config = window.eposAffiliate || {};
@@ -13,6 +14,7 @@ const PAGES = {
   resellers: ResellerList,
   bds: BDList,
   commissions: CommissionList,
+  'serial-numbers': SerialNumberList,
   settings: Settings,
 };
 
@@ -21,6 +23,7 @@ const PAGE_TITLES = {
   resellers: 'Reseller Management',
   bds: 'BD Agent Management',
   commissions: 'Commission Management',
+  'serial-numbers': 'Serial Number Management',
   settings: 'Plugin Settings',
 };
 

@@ -152,8 +152,8 @@ class DashboardController {
         $stats = OrderAttribution::stats_for_bd( $bd->id, $date_from, $date_to );
 
         // Commissions.
-        $commission_paid    = Commission::sum_for_bd( $bd->id, 'sales', 'paid' );
-        $commission_pending = Commission::sum_for_bd( $bd->id, 'sales', 'pending' )
+        // $commission_paid    = Commission::sum_for_bd( $bd->id, 'sales', 'paid' );
+        // $commission_pending = Commission::sum_for_bd( $bd->id, 'sales', 'pending' )
                             + Commission::sum_for_bd( $bd->id, 'sales', 'approved' );
 
         $current_month         = gmdate( 'Y-m' );
@@ -185,12 +185,24 @@ class DashboardController {
                 }
             }
 
+            // Get item quantity from WC order.
+            $wc_order  = wc_get_order( $attr->order_id );
+            $num_units = 0;
+            if ( $wc_order ) {
+                foreach ( $wc_order->get_items() as $item ) {
+                    $num_units += $item->get_quantity();
+                }
+            }
+
             $orders[] = [
-                'order_id'      => $attr->order_id,
-                'date'          => $attr->attributed_at,
-                'value'         => (float) $attr->order_value,
-                'commission'    => $comm_amount,
-                'payout_status' => $comm_status,
+                'order_id'           => $attr->order_id,
+                'date'               => $attr->attributed_at,
+                'value'              => (float) $attr->order_value,
+                'num_units'          => $num_units,
+                'usage_target_met'   => false, // Phase 2 placeholder
+                'commission'         => $comm_amount,
+                'usage_bonus'        => 0, // Phase 2
+                'payout_status'      => $comm_status,
             ];
         }
 
@@ -198,9 +210,9 @@ class DashboardController {
             'tracking_code' => $bd->tracking_code,
             'kpis' => [
                 'total_orders'         => (int) ( $stats->total_orders ?? 0 ),
-                'commission_paid'      => $commission_paid,
-                'commission_pending'   => $commission_pending,
-                'usage_bonus_current'  => $usage_bonus_current,
+                // 'commission_paid'      => $commission_paid,
+                // 'commission_pending'   => $commission_pending,
+                // 'usage_bonus_current'  => $usage_bonus_current,
                 'usage_bonus_last_paid'=> $usage_bonus_last_paid,
             ],
             'orders' => $orders,
@@ -244,13 +256,23 @@ class DashboardController {
 
         $orders = [];
         foreach ( $attributions as $attr ) {
-            $cr          = $comm_map[ (int) $attr->order_id ] ?? null;
-            $orders[]    = [
-                'order_id'      => $attr->order_id,
-                'date'          => $attr->attributed_at,
-                'value'         => (float) $attr->order_value,
-                'commission'    => $cr ? (float) $cr->amount : 0,
-                'payout_status' => $cr ? $cr->status : 'pending',
+            $cr        = $comm_map[ (int) $attr->order_id ] ?? null;
+            $wc_order  = wc_get_order( $attr->order_id );
+            $num_units = 0;
+            if ( $wc_order ) {
+                foreach ( $wc_order->get_items() as $item ) {
+                    $num_units += $item->get_quantity();
+                }
+            }
+            $orders[]  = [
+                'order_id'           => $attr->order_id,
+                'date'               => $attr->attributed_at,
+                'value'              => (float) $attr->order_value,
+                'num_units'          => $num_units,
+                'usage_target_met'   => false, // Phase 2 placeholder
+                'commission'         => $cr ? (float) $cr->amount : 0,
+                'usage_bonus'        => 0, // Phase 2
+                'payout_status'      => $cr ? $cr->status : 'pending',
             ];
         }
 
@@ -276,14 +298,17 @@ class DashboardController {
         header( 'Content-Disposition: attachment; filename="my-orders.csv"' );
 
         $output = fopen( 'php://output', 'w' );
-        fputcsv( $output, [ 'Order ID', 'Date', 'Value', 'Commission', 'Status' ] );
+        fputcsv( $output, [ 'Order ID', 'Date', 'Value', 'Number of Units', 'Usage Target Met', 'Sales Commission', 'Usage Bonus', 'Status' ] );
 
         foreach ( $orders as $order ) {
             fputcsv( $output, [
                 $order['order_id'],
                 $order['date'] ?? '',
                 number_format( $order['value'], 2, '.', '' ),
+                $order['num_units'] ?? 0,
+                ( $order['usage_target_met'] ?? false ) ? 'Yes' : 'No',
                 number_format( $order['commission'], 2, '.', '' ),
+                number_format( $order['usage_bonus'] ?? 0, 2, '.', '' ),
                 $order['payout_status'],
             ] );
         }
@@ -307,14 +332,17 @@ class DashboardController {
         header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
 
         $output = fopen( 'php://output', 'w' );
-        fputcsv( $output, [ 'Order ID', 'Date', 'Value', 'Commission', 'Status' ] );
+        fputcsv( $output, [ 'Order ID', 'Date', 'Value', 'Number of Units', 'Usage Target Met', 'Sales Commission', 'Usage Bonus', 'Status' ] );
 
         foreach ( $orders as $order ) {
             fputcsv( $output, [
                 $order['order_id'],
                 $order['date'] ?? '',
                 number_format( $order['value'], 2, '.', '' ),
+                $order['num_units'] ?? 0,
+                ( $order['usage_target_met'] ?? false ) ? 'Yes' : 'No',
                 number_format( $order['commission'], 2, '.', '' ),
+                number_format( $order['usage_bonus'] ?? 0, 2, '.', '' ),
                 $order['payout_status'],
             ] );
         }
