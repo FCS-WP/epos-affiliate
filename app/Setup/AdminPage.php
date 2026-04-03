@@ -165,6 +165,7 @@ class AdminPage {
             'adminUrl'       => admin_url( 'admin.php' ),
             'currency'       => function_exists( 'get_woocommerce_currency' ) ? get_woocommerce_currency() : 'MYR',
             'currencySymbol' => function_exists( 'get_woocommerce_currency_symbol' ) ? get_woocommerce_currency_symbol() : 'RM',
+            'siteUrl'        => esc_url_raw( home_url() ),
         ] );
     }
 

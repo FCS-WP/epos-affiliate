@@ -5,12 +5,17 @@ import IconButton from '@mui/material/IconButton';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogActions from '@mui/material/DialogActions';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import Tooltip from '@mui/material/Tooltip';
+import Typography from '@mui/material/Typography';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import BlockIcon from '@mui/icons-material/Block';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import api from '../../api/client';
 import StatusChip from '../../components/StatusChip';
 import PageHeader from '../../components/PageHeader';
@@ -22,6 +27,8 @@ export default function ResellerList() {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, action: '', reseller: null });
+  const [actionLoading, setActionLoading] = useState(false);
 
   const fetchResellers = useCallback(async () => {
     setLoading(true);
@@ -44,14 +51,31 @@ export default function ResellerList() {
   const handleCreate = () => { setEditing(null); setDialogOpen(true); };
   const handleEdit = (reseller) => { setEditing(reseller); setDialogOpen(true); };
 
-  const handleDeactivate = async (id) => {
-    if (!confirm('Deactivate this reseller?')) return;
+  const openConfirm = (action, reseller) => {
+    setConfirmDialog({ open: true, action, reseller });
+  };
+
+  const closeConfirm = () => {
+    setConfirmDialog({ open: false, action: '', reseller: null });
+  };
+
+  const handleConfirm = async () => {
+    const { action, reseller } = confirmDialog;
+    setActionLoading(true);
     try {
-      await api.delete(`/resellers/${id}`);
-      showSnackbar('Reseller deactivated.');
+      if (action === 'deactivate') {
+        await api.delete(`/resellers/${reseller.id}`);
+        showSnackbar(`Reseller "${reseller.name}" deactivated.`);
+      } else {
+        await api.put(`/resellers/${reseller.id}`, { status: 'active' });
+        showSnackbar(`Reseller "${reseller.name}" reactivated.`);
+      }
       fetchResellers();
     } catch (err) {
       showSnackbar(err.message, 'error');
+    } finally {
+      setActionLoading(false);
+      closeConfirm();
     }
   };
 
@@ -75,7 +99,7 @@ export default function ResellerList() {
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 120,
+      width: 140,
       sortable: false,
       filterable: false,
       renderCell: (params) => (
@@ -85,10 +109,16 @@ export default function ResellerList() {
               <EditIcon fontSize="small" />
             </IconButton>
           </Tooltip>
-          {params.row.status === 'active' && (
+          {params.row.status === 'active' ? (
             <Tooltip title="Deactivate">
-              <IconButton size="small" color="error" onClick={() => handleDeactivate(params.row.id)}>
+              <IconButton size="small" color="error" onClick={() => openConfirm('deactivate', params.row)}>
                 <BlockIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          ) : (
+            <Tooltip title="Reactivate">
+              <IconButton size="small" color="success" onClick={() => openConfirm('reactivate', params.row)}>
+                <CheckCircleOutlineIcon fontSize="small" />
               </IconButton>
             </Tooltip>
           )}
@@ -96,6 +126,8 @@ export default function ResellerList() {
       ),
     },
   ];
+
+  const isDeactivate = confirmDialog.action === 'deactivate';
 
   return (
     <>
@@ -118,11 +150,46 @@ export default function ResellerList() {
         localeText={{ noRowsLabel: 'No resellers yet.' }}
       />
 
+      {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>{editing ? 'Edit Reseller' : 'Add Reseller'}</DialogTitle>
         <DialogContent>
           <ResellerForm reseller={editing} onSaved={handleSaved} onCancel={() => setDialogOpen(false)} />
         </DialogContent>
+      </Dialog>
+
+      {/* Deactivate / Reactivate Confirmation Dialog */}
+      <Dialog open={confirmDialog.open} onClose={closeConfirm} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ textAlign: 'center', pb: 0, pt: 3 }}>
+          {isDeactivate
+            ? <WarningAmberIcon sx={{ fontSize: 48, color: 'error.main' }} />
+            : <CheckCircleOutlineIcon sx={{ fontSize: 48, color: 'success.main' }} />
+          }
+          <Typography variant="h6" sx={{ mt: 1 }}>
+            {isDeactivate ? 'Deactivate Reseller' : 'Reactivate Reseller'}
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ textAlign: 'center', pt: 1 }}>
+          <DialogContentText>
+            {isDeactivate
+              ? `Are you sure you want to deactivate "${confirmDialog.reseller?.name}"? They will be logged out and lose access to their dashboard immediately.`
+              : `Are you sure you want to reactivate "${confirmDialog.reseller?.name}"? They will regain access to their dashboard.`
+            }
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 1 }}>
+          <Button variant="outlined" onClick={closeConfirm} disabled={actionLoading}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color={isDeactivate ? 'error' : 'success'}
+            onClick={handleConfirm}
+            disabled={actionLoading}
+          >
+            {actionLoading ? 'Processing...' : (isDeactivate ? 'Deactivate' : 'Reactivate')}
+          </Button>
+        </DialogActions>
       </Dialog>
 
       <Snackbar
