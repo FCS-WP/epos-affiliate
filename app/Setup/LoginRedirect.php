@@ -90,30 +90,41 @@ class LoginRedirect {
     }
 
     /**
-     * If a non-logged-in user visits a dashboard page, redirect to the custom login page.
+     * If a non-logged-in user visits a dashboard page, redirect to the affiliate login page.
      */
     public static function protect_dashboard_pages() {
         if ( is_user_logged_in() ) {
             return;
         }
 
-        // Check if current page uses the dashboard template.
-        global $post;
-        if ( ! $post ) {
+        $is_dashboard = false;
+
+        // Check 1: URL path matches dashboard routes.
+        $request_uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+        $path        = wp_parse_url( $request_uri, PHP_URL_PATH );
+
+        if ( $path && preg_match( '#/my/dashboard/(bd|reseller)#', $path ) ) {
+            $is_dashboard = true;
+        }
+
+        // Check 2: Current page uses the dashboard template.
+        if ( ! $is_dashboard ) {
+            global $post;
+            if ( $post ) {
+                $template = get_page_template_slug( $post->ID );
+                if ( 'epos-affiliate-dashboard' === $template ) {
+                    $is_dashboard = true;
+                }
+            }
+        }
+
+        if ( ! $is_dashboard ) {
             return;
         }
 
-        $template = get_page_template_slug( $post->ID );
-        if ( 'epos-affiliate-dashboard' !== $template ) {
-            return;
-        }
-
-        // Find the login page.
-        $login_url = self::get_custom_login_url();
-        if ( $login_url ) {
-            wp_redirect( $login_url );
-            exit;
-        }
+        $login_url = home_url( '/my/login/' );
+        wp_redirect( $login_url );
+        exit;
     }
 
     /**

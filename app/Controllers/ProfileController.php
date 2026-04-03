@@ -182,6 +182,72 @@ class ProfileController {
         ], 200 );
     }
 
+    /**
+     * PUT /profile/password — change current user's password.
+     * Requires current_password, new_password, confirm_password.
+     */
+    public static function change_password( WP_REST_Request $request ) {
+        $user    = wp_get_current_user();
+        $params  = $request->get_json_params();
+
+        $current  = isset( $params['current_password'] ) ? $params['current_password'] : '';
+        $new_pass = isset( $params['new_password'] )     ? $params['new_password']     : '';
+        $confirm  = isset( $params['confirm_password'] ) ? $params['confirm_password'] : '';
+
+        // All fields required.
+        if ( empty( $current ) || empty( $new_pass ) || empty( $confirm ) ) {
+            return new WP_REST_Response(
+                [ 'message' => 'All password fields are required.' ],
+                400
+            );
+        }
+
+        // Verify current password.
+        if ( ! wp_check_password( $current, $user->user_pass, $user->ID ) ) {
+            return new WP_REST_Response(
+                [ 'message' => 'Current password is incorrect.' ],
+                403
+            );
+        }
+
+        // New password must match confirmation.
+        if ( $new_pass !== $confirm ) {
+            return new WP_REST_Response(
+                [ 'message' => 'New password and confirmation do not match.' ],
+                400
+            );
+        }
+
+        // Minimum length check.
+        if ( strlen( $new_pass ) < 8 ) {
+            return new WP_REST_Response(
+                [ 'message' => 'New password must be at least 8 characters long.' ],
+                400
+            );
+        }
+
+        // Must not be the same as current password.
+        if ( $current === $new_pass ) {
+            return new WP_REST_Response(
+                [ 'message' => 'New password must be different from the current password.' ],
+                400
+            );
+        }
+
+        // Set the new password.
+        wp_set_password( $new_pass, $user->ID );
+
+        // wp_set_password destroys all sessions including current.
+        // Re-authenticate and set a fresh login cookie so the user stays logged in.
+        wp_set_current_user( $user->ID );
+        wp_set_auth_cookie( $user->ID, true );
+
+        return new WP_REST_Response(
+            [ 'message' => 'Password changed successfully.' ],
+            200
+        );
+    }
+
     private static function get_role( $user ) {
         if ( in_array( 'administrator', $user->roles, true ) ) {
             return 'administrator';

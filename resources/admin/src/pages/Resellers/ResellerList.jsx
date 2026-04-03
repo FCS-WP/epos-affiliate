@@ -11,15 +11,26 @@ import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import Stack from '@mui/material/Stack';
+import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import BlockIcon from '@mui/icons-material/Block';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import QrCodeIcon from '@mui/icons-material/QrCode';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import DownloadIcon from '@mui/icons-material/Download';
+import ShareIcon from '@mui/icons-material/Share';
+import QRCode from 'react-qr-code';
 import api from '../../api/client';
 import StatusChip from '../../components/StatusChip';
 import PageHeader from '../../components/PageHeader';
 import ResellerForm from './ResellerForm';
+
+const siteUrl = (window.eposAffiliate || {}).siteUrl || window.location.origin;
 
 export default function ResellerList() {
   const [resellers, setResellers] = useState([]);
@@ -29,6 +40,7 @@ export default function ResellerList() {
   const [editing, setEditing] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, action: '', reseller: null });
   const [actionLoading, setActionLoading] = useState(false);
+  const [qrDialogReseller, setQrDialogReseller] = useState(null);
 
   const fetchResellers = useCallback(async () => {
     setLoading(true);
@@ -89,6 +101,21 @@ export default function ResellerList() {
     { field: 'id', headerName: 'ID', width: 70 },
     { field: 'name', headerName: 'Name', flex: 1, minWidth: 150 },
     { field: 'slug', headerName: 'Slug', flex: 1, minWidth: 120 },
+    {
+      field: 'qr_token',
+      headerName: 'QR',
+      width: 80,
+      sortable: false,
+      renderCell: (params) => params.value ? (
+        <Tooltip title="View QR Code">
+          <IconButton size="small" onClick={() => setQrDialogReseller(params.row)}>
+            <QrCodeIcon fontSize="small" color="primary" />
+          </IconButton>
+        </Tooltip>
+      ) : (
+        <Typography variant="caption" color="text.disabled">—</Typography>
+      ),
+    },
     {
       field: 'status',
       headerName: 'Status',
@@ -156,6 +183,94 @@ export default function ResellerList() {
         <DialogContent>
           <ResellerForm reseller={editing} onSaved={handleSaved} onCancel={() => setDialogOpen(false)} />
         </DialogContent>
+      </Dialog>
+
+      {/* QR Code Dialog */}
+      <Dialog open={!!qrDialogReseller} onClose={() => setQrDialogReseller(null)} maxWidth="xs" fullWidth>
+        {qrDialogReseller && (() => {
+          const qrUrl = `${siteUrl}/my/qr/${qrDialogReseller.qr_token}`;
+          const handleDownload = () => {
+            const svg = document.getElementById('reseller-qr-svg');
+            if (!svg) return;
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const canvas = document.createElement('canvas');
+            canvas.width = 600;
+            canvas.height = 600;
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            img.onload = () => {
+              ctx.fillStyle = '#ffffff';
+              ctx.fillRect(0, 0, 600, 600);
+              ctx.drawImage(img, 0, 0, 600, 600);
+              const a = document.createElement('a');
+              a.download = `qr-${qrDialogReseller.slug}.png`;
+              a.href = canvas.toDataURL('image/png');
+              a.click();
+            };
+            img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+          };
+          const handleCopy = () => {
+            navigator.clipboard.writeText(qrUrl);
+            showSnackbar('QR link copied!');
+          };
+          const handleShare = () => {
+            if (navigator.share) {
+              navigator.share({ title: `QR - ${qrDialogReseller.name}`, url: qrUrl });
+            }
+          };
+          return (
+            <>
+              <DialogTitle sx={{ textAlign: 'center', pb: 0 }}>
+                <Typography variant="h6" fontWeight={700}>{qrDialogReseller.name}</Typography>
+                <Chip
+                  label={qrDialogReseller.tracking_code}
+                  size="small"
+                  sx={{ mt: 0.5, fontWeight: 600, fontSize: '0.75rem', fontFamily: 'monospace' }}
+                />
+              </DialogTitle>
+              <DialogContent>
+                <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 2,
+                      border: '2px solid',
+                      borderColor: 'divider',
+                      borderRadius: 2,
+                      backgroundColor: '#fff',
+                    }}
+                  >
+                    <QRCode id="reseller-qr-svg" value={qrUrl} size={200} level="H" />
+                  </Paper>
+                </Box>
+                <Typography
+                  variant="caption"
+                  display="block"
+                  textAlign="center"
+                  sx={{ wordBreak: 'break-all', color: 'text.secondary', mb: 2 }}
+                >
+                  {qrUrl}
+                </Typography>
+                <Stack direction="row" spacing={1} justifyContent="center">
+                  <Button variant="outlined" size="small" startIcon={<ContentCopyIcon />} onClick={handleCopy}>
+                    Copy Link
+                  </Button>
+                  <Button variant="outlined" size="small" startIcon={<DownloadIcon />} onClick={handleDownload}>
+                    Download
+                  </Button>
+                  {typeof navigator.share === 'function' && (
+                    <Button variant="outlined" size="small" startIcon={<ShareIcon />} onClick={handleShare}>
+                      Share
+                    </Button>
+                  )}
+                </Stack>
+              </DialogContent>
+              <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
+                <Button onClick={() => setQrDialogReseller(null)}>Close</Button>
+              </DialogActions>
+            </>
+          );
+        })()}
       </Dialog>
 
       {/* Deactivate / Reactivate Confirmation Dialog */}

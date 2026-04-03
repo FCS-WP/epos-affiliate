@@ -16,11 +16,12 @@
 - [ ] Verify CSV exports contain correct data with proper formatting
 - [ ] Test inactive account blocking — deactivated reseller/BD should get logged out and redirected
 - [ ] Test serial number assignment — uniqueness, order status validation, over-assign prevention
+- [ ] Test change password flow — current password verification, session persistence
+- [ ] Test custom welcome emails — verify correct login URL, credentials, formatting
 
 ### Admin Dashboard Enhancement
-- [ ] Enhance admin Reseller list UI (DataGrid, search, filters)
-- [ ] Enhance admin BD list UI (DataGrid, search, filters)
-- [ ] Enhance admin Commission list UI (DataGrid, bulk actions, filters)
+- [ ] Enhance admin Reseller list UI (search, filters)
+- [ ] Enhance admin BD list UI (search, filters)
 - [ ] Enhance admin Settings UI
 - [ ] Admin dashboard chart — wire up to real data (currently uses mock data)
 
@@ -50,6 +51,5 @@
 - [ ] Push notifications — alert BD when order is attributed
 - [ ] Dashboard analytics charts — trend lines, bar charts for revenue over time
 - [ ] Bulk BD onboarding — CSV import for creating multiple BDs
-- [ ] Email templates — branded emails for BD/Reseller onboarding
 - [ ] BD deactivation — freeze dashboard, retain read-only 30 days
 - [ ] Reseller deactivation — show "account disabled" page instead of login redirect

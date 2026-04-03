@@ -7,6 +7,7 @@ defined( 'ABSPATH' ) || exit;
 use EposAffiliate\Models\Reseller;
 use EposAffiliate\Models\BD;
 use EposAffiliate\Services\CouponService;
+use EposAffiliate\Services\EmailService;
 use WP_REST_Request;
 use WP_REST_Response;
 
@@ -18,7 +19,23 @@ class ResellerController {
             $args['status'] = $request->get_param( 'status' );
         }
 
-        return new WP_REST_Response( Reseller::all( $args ), 200 );
+        $resellers = Reseller::all( $args );
+
+        // Enrich each reseller with their auto-created BD record's QR data.
+        foreach ( $resellers as $reseller ) {
+            $reseller->qr_token      = null;
+            $reseller->tracking_code = null;
+
+            if ( $reseller->wp_user_id ) {
+                $bd = BD::find_by_user_id( $reseller->wp_user_id );
+                if ( $bd ) {
+                    $reseller->qr_token      = $bd->qr_token;
+                    $reseller->tracking_code = $bd->tracking_code;
+                }
+            }
+        }
+
+        return new WP_REST_Response( $resellers, 200 );
     }
 
     public static function show( WP_REST_Request $request ) {
@@ -26,6 +43,17 @@ class ResellerController {
 
         if ( ! $reseller ) {
             return new WP_REST_Response( [ 'message' => 'Reseller not found.' ], 404 );
+        }
+
+        // Enrich with QR data from auto-created BD record.
+        $reseller->qr_token      = null;
+        $reseller->tracking_code = null;
+        if ( $reseller->wp_user_id ) {
+            $bd = BD::find_by_user_id( $reseller->wp_user_id );
+            if ( $bd ) {
+                $reseller->qr_token      = $bd->qr_token;
+                $reseller->tracking_code = $bd->tracking_code;
+            }
         }
 
         return new WP_REST_Response( $reseller, 200 );
@@ -62,8 +90,8 @@ class ResellerController {
                 return new WP_REST_Response( [ 'message' => $wp_user_id->get_error_message() ], 400 );
             }
 
-            // Send credentials email.
-            wp_new_user_notification( $wp_user_id, null, 'user' );
+            // Send custom welcome email with login URL to affiliate portal.
+            EmailService::send_reseller_welcome( $wp_user_id, $name, $password );
         }
 
         $id = Reseller::create( [

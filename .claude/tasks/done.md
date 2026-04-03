@@ -108,6 +108,37 @@
 - [x] Removed commission values from BD view (sales commission hidden)
 - [x] "Number of Units" column in order tables + CSV exports
 
+### Admin MUI Confirmation Dialogs
+- [x] Commission list — MUI dialogs for Approve, Mark Paid, Void (single + bulk) with icons and loading state
+- [x] Reseller list — MUI dialogs for Deactivate/Reactivate with warning messages
+- [x] BD list — MUI dialogs for Deactivate/Reactivate with tracking code info
+
+### Admin QR Code Dialogs
+- [x] BD list — QR popup dialog (view QR, copy link, download PNG, share)
+- [x] Reseller list — QR popup dialog (enriched from auto-created BD record)
+- [x] `ResellerController::index()` and `show()` — enrich resellers with `qr_token` and `tracking_code`
+- [x] `react-qr-code` installed in admin app
+- [x] `siteUrl` added to `wp_localize_script` in `AdminPage.php`
+
+### Custom Email Templates
+- [x] `EmailService.php` — branded HTML emails replacing default WP `wp_new_user_notification`
+- [x] Reseller welcome email — credentials, login URL to `/my/login/`, dashboard link
+- [x] BD welcome email — credentials, reseller name, login URL, dashboard link
+- [x] All 3 controllers updated (`ResellerController`, `BDController`, `ResellerBDController`)
+- [x] No more default WP email with `/wp-admin/` password reset link
+
+### Change Password
+- [x] `PUT /profile/password` REST endpoint with security checks
+- [x] Verifies current password with `wp_check_password()`
+- [x] Validates: min 8 chars, passwords match, new ≠ current
+- [x] Re-authenticates session after `wp_set_password()` so user stays logged in
+- [x] ProfileForm — "Change Password" section with show/hide toggles, inline alerts
+- [x] Client-side validation mirrors server-side
+
+### Dashboard Access Protection
+- [x] `protect_dashboard_pages()` — URL path check + template check for non-logged-in users
+- [x] Non-logged-in visitors to `/my/dashboard/bd/` or `/my/dashboard/reseller/` redirect to `/my/login/`
+
 ### Bug Fixes
 - [x] MUI v7 + React 18 incompatibility — downgraded to MUI v6
 - [x] `api.delete` not a function — added `delete` method to frontend API client
@@ -116,3 +147,4 @@
 - [x] Reseller `/qr` route missing — added QR route for resellers in `RoleRouter`
 - [x] CSV export format — fixed single-line CSV output, added proper newlines
 - [x] Export button in BD Orders — fixed download endpoint
+- [x] Dashboard pages redirect to WP login instead of affiliate login — fixed with URL path check
