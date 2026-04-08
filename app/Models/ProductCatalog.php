@@ -50,6 +50,7 @@ class ProductCatalog {
             'label'              => sanitize_text_field( $data['label'] ),
             'wc_product_id'      => absint( $data['wc_product_id'] ),
             'default_commission' => floatval( $data['default_commission'] ?? 0 ),
+            'usage_bonus'        => floatval( $data['usage_bonus'] ?? 0 ),
             'status'             => $data['status'] ?? 'active',
         ] );
 
@@ -63,6 +64,7 @@ class ProductCatalog {
         if ( isset( $data['label'] ) )              $update['label']              = sanitize_text_field( $data['label'] );
         if ( isset( $data['wc_product_id'] ) )      $update['wc_product_id']      = absint( $data['wc_product_id'] );
         if ( isset( $data['default_commission'] ) )  $update['default_commission'] = floatval( $data['default_commission'] );
+        if ( isset( $data['usage_bonus'] ) )         $update['usage_bonus']        = floatval( $data['usage_bonus'] );
         if ( isset( $data['status'] ) )              $update['status']             = sanitize_text_field( $data['status'] );
 
         if ( empty( $update ) ) return false;

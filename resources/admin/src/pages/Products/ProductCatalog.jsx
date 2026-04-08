@@ -38,6 +38,7 @@ export default function ProductCatalog() {
   const [formLabel, setFormLabel] = useState('');
   const [formProductId, setFormProductId] = useState('');
   const [formCommission, setFormCommission] = useState('');
+  const [formUsageBonus, setFormUsageBonus] = useState('');
   const [formSaving, setFormSaving] = useState(false);
   const [formError, setFormError] = useState('');
 
@@ -67,6 +68,7 @@ export default function ProductCatalog() {
     setFormLabel('');
     setFormProductId('');
     setFormCommission('');
+    setFormUsageBonus('');
     setFormError('');
     setDialogOpen(true);
   };
@@ -76,6 +78,7 @@ export default function ProductCatalog() {
     setFormLabel(item.label);
     setFormProductId(item.wc_product_id);
     setFormCommission(item.default_commission);
+    setFormUsageBonus(item.usage_bonus);
     setFormError('');
     setDialogOpen(true);
   };
@@ -89,6 +92,7 @@ export default function ProductCatalog() {
           label: formLabel,
           wc_product_id: formProductId,
           default_commission: parseFloat(formCommission) || 0,
+          usage_bonus: parseFloat(formUsageBonus) || 0,
         });
         showSnackbar('Product updated.');
       } else {
@@ -96,6 +100,7 @@ export default function ProductCatalog() {
           label: formLabel,
           wc_product_id: formProductId,
           default_commission: parseFloat(formCommission) || 0,
+          usage_bonus: parseFloat(formUsageBonus) || 0,
         });
         showSnackbar('Product added to catalog.');
       }
@@ -123,14 +128,20 @@ export default function ProductCatalog() {
     { field: 'wc_product_name', headerName: 'Product', flex: 1, minWidth: 200, },
     {
       field: 'default_commission',
-      headerName: `Default Commission (${cs})`,
-      width: 200,
+      headerName: `Sales Commission`,
+      width: 150,
+      valueFormatter: (value) => `${cs} ${Number(value).toFixed(2)}`,
+    },
+    {
+      field: 'usage_bonus',
+      headerName: `Usage Bonus`,
+      width: 130,
       valueFormatter: (value) => `${cs} ${Number(value).toFixed(2)}`,
     },
     {
       field: 'wc_product_price',
-      headerName: `Price (${cs})`,
-      width: 120,
+      headerName: `Price`,
+      width: 100,
       valueFormatter: (value) => `${cs} ${Number(value).toFixed(2)}`,
     },
     {
@@ -208,13 +219,25 @@ export default function ProductCatalog() {
               </Select>
             </FormControl>
             <TextField
-              label="Default Commission"
+              label="Sales Commission"
               type="number"
               value={formCommission}
               onChange={(e) => setFormCommission(e.target.value)}
               required
               fullWidth
               helperText="Fixed amount per order. Can be overridden per reseller."
+              InputProps={{
+                startAdornment: <InputAdornment position="start">{cs}</InputAdornment>,
+              }}
+              inputProps={{ min: 0, step: 0.01 }}
+            />
+            <TextField
+              label="Usage Bonus"
+              type="number"
+              value={formUsageBonus}
+              onChange={(e) => setFormUsageBonus(e.target.value)}
+              fullWidth
+              helperText="Fixed bonus per device when usage is confirmed. Set 0 if not applicable."
               InputProps={{
                 startAdornment: <InputAdornment position="start">{cs}</InputAdornment>,
               }}

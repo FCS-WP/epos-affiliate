@@ -16,6 +16,7 @@ class AdminPage {
         'epos-affiliate-commissions'    => 'Commissions',
         'epos-affiliate-serial-numbers' => 'Serial Numbers',
         'epos-affiliate-products'       => 'Products',
+        'epos-affiliate-usage-bonus'    => 'Usage Bonus',
     ];
 
     public static function init() {
@@ -64,6 +65,7 @@ class AdminPage {
             'epos-affiliate_page_epos-affiliate-commissions',
             'epos-affiliate_page_epos-affiliate-serial-numbers',
             'epos-affiliate_page_epos-affiliate-products',
+            'epos-affiliate_page_epos-affiliate-usage-bonus',
         ];
 
         return in_array( $hook, $our_hooks, true );
@@ -82,6 +84,7 @@ class AdminPage {
             'epos-affiliate-commissions'    => 'commissions',
             'epos-affiliate-serial-numbers' => 'serial-numbers',
             'epos-affiliate-products'       => 'products',
+            'epos-affiliate-usage-bonus'    => 'usage-bonus',
         ];
 
         return $map[ $page ] ?? 'dashboard';

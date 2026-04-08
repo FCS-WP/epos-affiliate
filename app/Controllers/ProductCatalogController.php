@@ -30,6 +30,7 @@ class ProductCatalogController {
         $label              = sanitize_text_field( $request->get_param( 'label' ) );
         $wc_product_id      = absint( $request->get_param( 'wc_product_id' ) );
         $default_commission = floatval( $request->get_param( 'default_commission' ) );
+        $usage_bonus        = floatval( $request->get_param( 'usage_bonus' ) );
 
         if ( ! $label || ! $wc_product_id ) {
             return new WP_REST_Response( [ 'message' => 'Label and WooCommerce product are required.' ], 400 );
@@ -49,6 +50,7 @@ class ProductCatalogController {
             'label'              => $label,
             'wc_product_id'      => $wc_product_id,
             'default_commission' => $default_commission,
+            'usage_bonus'        => $usage_bonus,
         ] );
 
         if ( ! $id ) {
@@ -93,6 +95,10 @@ class ProductCatalogController {
 
         if ( $request->has_param( 'default_commission' ) ) {
             $data['default_commission'] = floatval( $request->get_param( 'default_commission' ) );
+        }
+
+        if ( $request->has_param( 'usage_bonus' ) ) {
+            $data['usage_bonus'] = floatval( $request->get_param( 'usage_bonus' ) );
         }
 
         if ( $request->has_param( 'status' ) ) {

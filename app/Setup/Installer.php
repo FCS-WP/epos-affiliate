@@ -81,6 +81,7 @@ class Installer {
                 label varchar(50) NOT NULL,
                 wc_product_id bigint(20) unsigned NOT NULL,
                 default_commission decimal(10,2) NOT NULL DEFAULT 0.00,
+                usage_bonus decimal(10,2) NOT NULL DEFAULT 0.00,
                 status varchar(20) NOT NULL DEFAULT 'active',
                 created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY  (id),
@@ -131,6 +132,7 @@ class Installer {
         // Add product_id column to existing tables if missing.
         self::maybe_add_column( $wpdb->prefix . 'epos_commissions', 'product_id', 'bigint(20) unsigned DEFAULT NULL AFTER reference_id' );
         self::maybe_add_column( $wpdb->prefix . 'epos_order_attributions', 'product_id', 'bigint(20) unsigned DEFAULT NULL AFTER order_value' );
+        self::maybe_add_column( $wpdb->prefix . 'epos_product_catalog', 'usage_bonus', 'decimal(10,2) NOT NULL DEFAULT 0.00 AFTER default_commission' );
 
         update_option( 'epos_affiliate_db_version', EPOS_AFFILIATE_VERSION );
 

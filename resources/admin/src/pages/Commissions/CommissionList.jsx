@@ -13,6 +13,7 @@ import Stack from '@mui/material/Stack';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -167,6 +168,19 @@ export default function CommissionList() {
       ),
     },
     {
+      field: 'type',
+      headerName: 'Type',
+      width: 120,
+      renderCell: (params) => (
+        <Chip
+          label={params.value === 'usage_bonus' ? 'Usage Bonus' : 'Sales'}
+          size="small"
+          color={params.value === 'usage_bonus' ? 'secondary' : 'primary'}
+          variant="outlined"
+        />
+      ),
+    },
+    {
       field: 'status',
       headerName: 'Status',
       width: 120,
@@ -235,7 +249,15 @@ export default function CommissionList() {
             }
           </Select>
         </FormControl>
-        <FormControl size="small" sx={{ minWidth: 120 }}>
+        <FormControl size="small" sx={{ minWidth: 110 }}>
+          <InputLabel>Type</InputLabel>
+          <Select value={filterType} label="Type" onChange={(e) => setFilterType(e.target.value)}>
+            <MenuItem value="">All</MenuItem>
+            <MenuItem value="sales">Sales</MenuItem>
+            <MenuItem value="usage_bonus">Usage Bonus</MenuItem>
+          </Select>
+        </FormControl>
+        <FormControl size="small" sx={{ minWidth: 110 }}>
           <InputLabel>Status</InputLabel>
           <Select value={filterStatus} label="Status" onChange={(e) => setFilterStatus(e.target.value)}>
             <MenuItem value="">All</MenuItem>

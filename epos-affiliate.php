@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Plugin constants.
  */
-define( 'EPOS_AFFILIATE_VERSION', '1.1.0' );
+define( 'EPOS_AFFILIATE_VERSION', '1.2.0' );
 define( 'EPOS_AFFILIATE_FILE', __FILE__ );
 define( 'EPOS_AFFILIATE_PATH', plugin_dir_path( __FILE__ ) );
 define( 'EPOS_AFFILIATE_URL', plugin_dir_url( __FILE__ ) );
@@ -69,6 +69,21 @@ add_action( 'plugins_loaded', function () {
 
     // Register REST API routes.
     add_action( 'rest_api_init', [ EposAffiliate\Routes\RouteRegistrar::class, 'register' ] );
+
+    // Bypass WP cookie nonce check for API-key-authenticated webhook endpoints.
+    add_filter( 'rest_authentication_errors', function ( $result ) {
+        if ( $result !== null ) {
+            return $result; // Zippy core auth plugin already handled it.
+        }
+
+        $request_uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+        if ( strpos( $request_uri, '/epos-affiliate/v1/usage-bonus/process' ) !== false ) {
+            // Skip cookie nonce validation — this endpoint uses X-API-Key auth.
+            return true;
+        }
+
+        return $result;
+    }, 99 );
 
     // Register WooCommerce hooks (services).
     EposAffiliate\Services\QRRedirectService::init();

@@ -25,6 +25,7 @@ class RouteRegistrar {
         SerialNumberRoutes::register();
         ProductCatalogRoutes::register();
         ProductAssignmentRoutes::register();
+        UsageBonusRoutes::register();
     }
 
     // ── Shared permission callbacks ──

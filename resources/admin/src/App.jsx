@@ -6,6 +6,7 @@ import BDList from './pages/BDs/BDList';
 import CommissionList from './pages/Commissions/CommissionList';
 import SerialNumberList from './pages/SerialNumbers/SerialNumberList';
 import ProductCatalog from './pages/Products/ProductCatalog';
+import UsageBonusList from './pages/UsageBonus/UsageBonusList';
 
 const config = window.eposAffiliate || {};
 
@@ -16,6 +17,7 @@ const PAGES = {
   commissions: CommissionList,
   'serial-numbers': SerialNumberList,
   products: ProductCatalog,
+  'usage-bonus': UsageBonusList,
 };
 
 const PAGE_TITLES = {
@@ -25,6 +27,7 @@ const PAGE_TITLES = {
   commissions: 'Commission Management',
   'serial-numbers': 'Serial Number Management',
   products: 'Product Catalog',
+  'usage-bonus': 'Usage Bonus',
 };
 
 export default function App() {

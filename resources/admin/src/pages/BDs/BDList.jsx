@@ -29,10 +29,12 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
 import QRCode from 'react-qr-code';
+import FileUploadIcon from '@mui/icons-material/FileUpload';
 import api from '../../api/client';
 import StatusChip from '../../components/StatusChip';
 import PageHeader from '../../components/PageHeader';
 import BDForm from './BDForm';
+import BDImportDialog from './BDImportDialog';
 
 export default function BDList() {
   const [bds, setBds] = useState([]);
@@ -45,6 +47,7 @@ export default function BDList() {
   const [confirmDialog, setConfirmDialog] = useState({ open: false, action: '', bd: null });
   const [actionLoading, setActionLoading] = useState(false);
   const [qrDialogBD, setQrDialogBD] = useState(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   const siteUrl = (window.eposAffiliate || {}).siteUrl || window.location.origin;
 
@@ -189,6 +192,9 @@ export default function BDList() {
             ))}
           </Select>
         </FormControl>
+        <Button variant="outlined" startIcon={<FileUploadIcon />} onClick={() => setImportOpen(true)}>
+          Import CSV
+        </Button>
         <Button variant="contained" startIcon={<AddIcon />} onClick={handleCreate}>
           Add BD
         </Button>
@@ -336,6 +342,14 @@ export default function BDList() {
           );
         })()}
       </Dialog>
+
+      {/* Import Dialog */}
+      <BDImportDialog
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        resellers={resellers}
+        onImported={() => { fetchData(); showSnackbar('BD import completed.'); }}
+      />
 
       <Snackbar
         open={snackbar.open}

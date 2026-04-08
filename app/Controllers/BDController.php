@@ -132,6 +132,171 @@ class BDController {
         return new WP_REST_Response( [ 'code' => $code ], 200 );
     }
 
+    /**
+     * POST /bds/import/validate — Validate CSV data before importing.
+     * Accepts JSON array of { name, email, reseller_id }.
+     * Returns each row with validation status + errors.
+     */
+    public static function validate_import( WP_REST_Request $request ) {
+        $rows = $request->get_json_params();
+
+        if ( ! is_array( $rows ) || empty( $rows ) ) {
+            return new WP_REST_Response( [ 'message' => 'No data provided.' ], 400 );
+        }
+
+        // Pre-load resellers for lookup.
+        $all_resellers = Reseller::all();
+        $reseller_map  = [];
+        foreach ( $all_resellers as $r ) {
+            $reseller_map[ (int) $r->id ] = $r;
+        }
+
+        // Collect emails in this batch to detect duplicates within the import itself.
+        $batch_emails = [];
+        $results      = [];
+
+        foreach ( $rows as $i => $row ) {
+            $name        = sanitize_text_field( $row['name'] ?? '' );
+            $email       = sanitize_email( $row['email'] ?? '' );
+            $reseller_id = absint( $row['reseller_id'] ?? 0 );
+            $errors      = [];
+
+            // Name validation.
+            if ( empty( $name ) ) {
+                $errors[] = 'Name is required.';
+            }
+
+            // Email validation.
+            if ( empty( $email ) ) {
+                $errors[] = 'Email is required.';
+            } elseif ( ! is_email( $email ) ) {
+                $errors[] = 'Invalid email format.';
+            } elseif ( email_exists( $email ) ) {
+                $errors[] = 'Email already exists in WordPress.';
+            } elseif ( in_array( strtolower( $email ), $batch_emails, true ) ) {
+                $errors[] = 'Duplicate email in this import.';
+            }
+
+            // Reseller validation.
+            if ( ! $reseller_id ) {
+                $errors[] = 'Reseller is required.';
+            } elseif ( ! isset( $reseller_map[ $reseller_id ] ) ) {
+                $errors[] = 'Reseller not found.';
+            } elseif ( $reseller_map[ $reseller_id ]->status !== 'active' ) {
+                $errors[] = 'Reseller is inactive.';
+            }
+
+            // Track email for batch duplicate detection.
+            if ( $email ) {
+                $batch_emails[] = strtolower( $email );
+            }
+
+            $reseller_name = isset( $reseller_map[ $reseller_id ] ) ? $reseller_map[ $reseller_id ]->name : '';
+
+            $results[] = [
+                'row'           => $i + 1,
+                'name'          => $name,
+                'email'         => $email,
+                'reseller_id'   => $reseller_id,
+                'reseller_name' => $reseller_name,
+                'valid'         => empty( $errors ),
+                'errors'        => $errors,
+            ];
+        }
+
+        $valid_count   = count( array_filter( $results, fn( $r ) => $r['valid'] ) );
+        $invalid_count = count( $results ) - $valid_count;
+
+        return new WP_REST_Response( [
+            'results'       => $results,
+            'total'         => count( $results ),
+            'valid_count'   => $valid_count,
+            'invalid_count' => $invalid_count,
+        ], 200 );
+    }
+
+    /**
+     * POST /bds/import — Execute the import for validated rows.
+     * Accepts JSON array of { name, email, reseller_id }.
+     * Skips invalid rows, creates valid ones.
+     */
+    public static function execute_import( WP_REST_Request $request ) {
+        $rows = $request->get_json_params();
+
+        if ( ! is_array( $rows ) || empty( $rows ) ) {
+            return new WP_REST_Response( [ 'message' => 'No data provided.' ], 400 );
+        }
+
+        $created = 0;
+        $skipped = 0;
+        $errors  = [];
+
+        foreach ( $rows as $i => $row ) {
+            $name        = sanitize_text_field( $row['name'] ?? '' );
+            $email       = sanitize_email( $row['email'] ?? '' );
+            $reseller_id = absint( $row['reseller_id'] ?? 0 );
+
+            // Basic validation.
+            if ( ! $name || ! $email || ! is_email( $email ) || ! $reseller_id ) {
+                $skipped++;
+                continue;
+            }
+
+            $reseller = Reseller::find( $reseller_id );
+            if ( ! $reseller || $reseller->status !== 'active' ) {
+                $skipped++;
+                continue;
+            }
+
+            if ( email_exists( $email ) ) {
+                $skipped++;
+                $errors[] = "Row " . ( $i + 1 ) . ": Email {$email} already exists.";
+                continue;
+            }
+
+            // Generate tracking code.
+            $tracking_code = BD::generate_tracking_code( $reseller_id, $reseller->slug );
+            $username      = sanitize_user( strtolower( $tracking_code ) );
+            $password      = wp_generate_password( 12 );
+
+            $wp_user_id = wp_insert_user( [
+                'user_login'   => $username,
+                'user_email'   => $email,
+                'user_pass'    => $password,
+                'role'         => 'bd_agent',
+                'display_name' => $name,
+            ] );
+
+            if ( is_wp_error( $wp_user_id ) ) {
+                $skipped++;
+                $errors[] = "Row " . ( $i + 1 ) . ": " . $wp_user_id->get_error_message();
+                continue;
+            }
+
+            $bd_id = BD::create( [
+                'reseller_id'   => $reseller_id,
+                'wp_user_id'    => $wp_user_id,
+                'name'          => $name,
+                'tracking_code' => $tracking_code,
+            ] );
+
+            if ( $bd_id ) {
+                CouponService::create_tracking_coupon( $tracking_code, $wp_user_id, $reseller_id );
+                EmailService::send_bd_welcome( $wp_user_id, $name, $password, $reseller->name );
+                $created++;
+            } else {
+                $skipped++;
+            }
+        }
+
+        return new WP_REST_Response( [
+            'message' => "{$created} BD(s) created, {$skipped} skipped.",
+            'created' => $created,
+            'skipped' => $skipped,
+            'errors'  => $errors,
+        ], 200 );
+    }
+
     public static function destroy( WP_REST_Request $request ) {
         $id = $request->get_param( 'id' );
         $bd = BD::find( $id );

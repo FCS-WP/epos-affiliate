@@ -54,6 +54,22 @@ class BDRoutes {
             ],
         ] );
 
+        register_rest_route( $ns, '/bds/import/validate', [
+            [
+                'methods'             => 'POST',
+                'callback'            => [ BDController::class, 'validate_import' ],
+                'permission_callback' => [ RouteRegistrar::class, 'can_manage' ],
+            ],
+        ] );
+
+        register_rest_route( $ns, '/bds/import', [
+            [
+                'methods'             => 'POST',
+                'callback'            => [ BDController::class, 'execute_import' ],
+                'permission_callback' => [ RouteRegistrar::class, 'can_manage' ],
+            ],
+        ] );
+
         register_rest_route( $ns, '/bds/next-code', [
             [
                 'methods'             => 'GET',
