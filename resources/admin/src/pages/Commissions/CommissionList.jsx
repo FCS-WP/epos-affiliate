@@ -12,6 +12,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -35,8 +36,18 @@ export default function CommissionList() {
   const [selected, setSelected] = useState([]);
   const [filterStatus, setFilterStatus] = useState('');
   const [filterType, setFilterType] = useState('');
+  const [filterReseller, setFilterReseller] = useState('');
+  const [filterBD, setFilterBD] = useState('');
+  const [resellers, setResellers] = useState([]);
+  const [bds, setBds] = useState([]);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, action: '', ids: [], row: null });
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Fetch resellers and BDs for filter dropdowns.
+  useEffect(() => {
+    api.get('/resellers').then(setResellers).catch(() => {});
+    api.get('/bds').then(setBds).catch(() => {});
+  }, []);
 
   const fetchCommissions = useCallback(async () => {
     setLoading(true);
@@ -44,6 +55,8 @@ export default function CommissionList() {
       const params = {};
       if (filterStatus) params.status = filterStatus;
       if (filterType) params.type = filterType;
+      if (filterReseller) params.reseller_id = filterReseller;
+      if (filterBD) params.bd_id = filterBD;
       const data = await api.get('/commissions', params);
       setCommissions(data);
     } catch (err) {
@@ -51,7 +64,7 @@ export default function CommissionList() {
     } finally {
       setLoading(false);
     }
-  }, [filterStatus, filterType]);
+  }, [filterStatus, filterType, filterReseller, filterBD]);
 
   useEffect(() => { fetchCommissions(); }, [fetchCommissions]);
 
@@ -122,25 +135,36 @@ export default function CommissionList() {
     const params = {};
     if (filterStatus) params.status = filterStatus;
     if (filterType) params.type = filterType;
+    if (filterReseller) params.reseller_id = filterReseller;
+    if (filterBD) params.bd_id = filterBD;
     api.download('/export/commissions', params, 'commissions.csv');
   };
 
   const columns = [
-    { field: 'id', headerName: 'ID', width: 70 },
-    { field: 'bd_name', headerName: 'BD', flex: 1, minWidth: 130 },
-    { field: 'reseller_name', headerName: 'Reseller', flex: 1, minWidth: 130 },
     {
-      field: 'type',
-      headerName: 'Type',
-      width: 120,
-      valueFormatter: (value) => value === 'sales' ? 'Sales' : 'Usage Bonus',
+      field: 'reference_id',
+      headerName: 'Order',
+      width: 150,
+      renderCell: (params) => (
+        <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
+          <Typography variant="body2" fontWeight={600} lineHeight={1.3}>#{params.value}</Typography>
+          <Typography variant="caption" color="primary.main" fontWeight={700} lineHeight={1.2}>
+            {cs} {Number(params.row.amount).toFixed(2)}
+          </Typography>
+        </Box>
+      ),
     },
-    { field: 'reference_id', headerName: 'Order #', width: 100 },
     {
-      field: 'amount',
-      headerName: `Amount (${cs})`,
-      width: 130,
-      valueFormatter: (value) => Number(value).toFixed(2),
+      field: 'bd_name',
+      headerName: 'BD / Reseller',
+      flex: 1,
+      minWidth: 180,
+      renderCell: (params) => (
+        <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
+          <Typography variant="body2" fontWeight={600} lineHeight={1.3}>{params.row.bd_name}</Typography>
+          <Typography variant="caption" color="text.secondary" lineHeight={1.2}>{params.row.reseller_name}</Typography>
+        </Box>
+      ),
     },
     {
       field: 'status',
@@ -149,7 +173,7 @@ export default function CommissionList() {
       renderCell: (params) => <StatusChip status={params.value} />,
     },
     { field: 'period_month', headerName: 'Period', width: 100 },
-    { field: 'created_at', headerName: 'Created', width: 160 },
+    { field: 'created_at', headerName: 'Created', width: 140 },
     {
       field: 'actions',
       headerName: 'Actions',
@@ -191,6 +215,27 @@ export default function CommissionList() {
     <>
       <PageHeader title="Commissions">
         <FormControl size="small" sx={{ minWidth: 140 }}>
+          <InputLabel>Reseller</InputLabel>
+          <Select value={filterReseller} label="Reseller" onChange={(e) => { setFilterReseller(e.target.value); setFilterBD(''); }}>
+            <MenuItem value="">All Resellers</MenuItem>
+            {resellers.map((r) => (
+              <MenuItem key={r.id} value={r.id}>{r.name}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl size="small" sx={{ minWidth: 140 }}>
+          <InputLabel>BD</InputLabel>
+          <Select value={filterBD} label="BD" onChange={(e) => setFilterBD(e.target.value)}>
+            <MenuItem value="">All BDs</MenuItem>
+            {bds
+              .filter((b) => !filterReseller || String(b.reseller_id) === String(filterReseller))
+              .map((b) => (
+                <MenuItem key={b.id} value={b.id}>{b.name}</MenuItem>
+              ))
+            }
+          </Select>
+        </FormControl>
+        <FormControl size="small" sx={{ minWidth: 120 }}>
           <InputLabel>Status</InputLabel>
           <Select value={filterStatus} label="Status" onChange={(e) => setFilterStatus(e.target.value)}>
             <MenuItem value="">All</MenuItem>
@@ -198,14 +243,6 @@ export default function CommissionList() {
             <MenuItem value="approved">Approved</MenuItem>
             <MenuItem value="paid">Paid</MenuItem>
             <MenuItem value="voided">Voided</MenuItem>
-          </Select>
-        </FormControl>
-        <FormControl size="small" sx={{ minWidth: 140 }}>
-          <InputLabel>Type</InputLabel>
-          <Select value={filterType} label="Type" onChange={(e) => setFilterType(e.target.value)}>
-            <MenuItem value="">All</MenuItem>
-            <MenuItem value="sales">Sales</MenuItem>
-            <MenuItem value="usage_bonus">Usage Bonus</MenuItem>
           </Select>
         </FormControl>
         <Button variant="outlined" startIcon={<FileDownloadIcon />} onClick={handleExport}>
@@ -229,6 +266,7 @@ export default function CommissionList() {
         columns={columns}
         loading={loading}
         autoHeight
+        rowHeight={52}
         checkboxSelection
         disableRowSelectionOnClick
         onRowSelectionModelChange={(ids) => setSelected(ids)}

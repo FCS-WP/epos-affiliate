@@ -5,7 +5,7 @@ import ResellerList from './pages/Resellers/ResellerList';
 import BDList from './pages/BDs/BDList';
 import CommissionList from './pages/Commissions/CommissionList';
 import SerialNumberList from './pages/SerialNumbers/SerialNumberList';
-import Settings from './pages/Settings/Settings';
+import ProductCatalog from './pages/Products/ProductCatalog';
 
 const config = window.eposAffiliate || {};
 
@@ -15,7 +15,7 @@ const PAGES = {
   bds: BDList,
   commissions: CommissionList,
   'serial-numbers': SerialNumberList,
-  settings: Settings,
+  products: ProductCatalog,
 };
 
 const PAGE_TITLES = {
@@ -24,7 +24,7 @@ const PAGE_TITLES = {
   bds: 'BD Agent Management',
   commissions: 'Commission Management',
   'serial-numbers': 'Serial Number Management',
-  settings: 'Plugin Settings',
+  products: 'Product Catalog',
 };
 
 export default function App() {
@@ -34,7 +34,6 @@ export default function App() {
 
   return (
     <Box sx={{ p: 3, maxWidth: 1400, mx: 'auto' }}>
-      {/* Page Header */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
         <Box
           sx={{
@@ -62,7 +61,6 @@ export default function App() {
         </Box>
       </Box>
 
-      {/* Page Content */}
       <PageComponent />
     </Box>
   );

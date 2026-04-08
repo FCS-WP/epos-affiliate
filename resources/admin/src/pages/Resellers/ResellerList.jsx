@@ -91,22 +91,66 @@ export default function ResellerList() {
     }
   };
 
-  const handleSaved = () => {
-    setDialogOpen(false);
-    showSnackbar(editing ? 'Reseller updated.' : 'Reseller created.');
-    fetchResellers();
+  const handleSaved = (createdReseller) => {
+    if (createdReseller && !editing) {
+      // After create: re-open in edit mode so admin can assign products.
+      setEditing(createdReseller);
+      showSnackbar('Reseller created. Now assign products below.');
+      fetchResellers();
+    } else {
+      setDialogOpen(false);
+      showSnackbar('Reseller updated.');
+      fetchResellers();
+    }
   };
 
   const columns = [
     { field: 'id', headerName: 'ID', width: 70 },
-    { field: 'name', headerName: 'Name', flex: 1, minWidth: 150 },
-    { field: 'slug', headerName: 'Slug', flex: 1, minWidth: 120 },
+    {
+      field: 'name',
+      headerName: 'Name',
+      flex: 1,
+      minWidth: 180,
+      renderCell: (params) => (
+        <Box sx={{ py: 0.5, display:"flex", flexDirection:"column"}}>
+          <Typography variant="body2" fontWeight={600}>{params.row.name}</Typography>
+          <Typography variant="caption" color="text.secondary">{params.row.email}</Typography>
+        </Box>
+      ),
+    },
+    {
+      field: 'slug',
+      headerName: 'Reseller Code',
+      width: 140,
+      valueFormatter: (value) => value ? value.toUpperCase() : '',
+    },
+    {
+      field: 'product_labels',
+      headerName: 'Products',
+      flex: 1,
+      minWidth: 140,
+      sortable: false,
+      renderCell: (params) => {
+        const labels = params.value || [];
+        return labels.length > 0 ? (
+          <Stack direction="row" spacing={0.5} flexWrap="wrap" alignItems="center" sx={{ height: '100%' }}>
+            {labels.map((label, i) => (
+              <Chip key={i} label={label} size="small" variant="outlined" />
+            ))}
+          </Stack>
+        ) : (
+          <Tooltip title="No products assigned. Click Edit to assign products.">
+            <Chip label="None" size="small" color="warning" variant="outlined" icon={<WarningAmberIcon />} />
+          </Tooltip>
+        );
+      },
+    },
     {
       field: 'qr_token',
       headerName: 'QR',
       width: 80,
       sortable: false,
-      renderCell: (params) => params.value ? (
+      renderCell: (params) => (params.value && params.row.product_count > 0) ? (
         <Tooltip title="View QR Code">
           <IconButton size="small" onClick={() => setQrDialogReseller(params.row)}>
             <QrCodeIcon fontSize="small" color="primary" />
@@ -169,6 +213,7 @@ export default function ResellerList() {
         columns={columns}
         loading={loading}
         autoHeight
+        rowHeight={52}
         disableRowSelectionOnClick
         pageSizeOptions={[10, 25, 50]}
         initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
@@ -178,7 +223,7 @@ export default function ResellerList() {
       />
 
       {/* Create/Edit Dialog */}
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth={editing ? 'md' : 'sm'} fullWidth>
         <DialogTitle>{editing ? 'Edit Reseller' : 'Add Reseller'}</DialogTitle>
         <DialogContent>
           <ResellerForm reseller={editing} onSaved={handleSaved} onCancel={() => setDialogOpen(false)} />
