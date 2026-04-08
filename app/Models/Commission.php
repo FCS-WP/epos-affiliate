@@ -32,6 +32,7 @@ class Commission {
             'reseller_id'  => absint( $data['reseller_id'] ),
             'type'         => sanitize_text_field( $data['type'] ?? 'sales' ),
             'reference_id' => absint( $data['reference_id'] ?? 0 ) ?: null,
+            'product_id'   => absint( $data['product_id'] ?? 0 ) ?: null,
             'amount'       => floatval( $data['amount'] ?? 0 ),
             'status'       => sanitize_text_field( $data['status'] ?? 'pending' ),
             'period_month' => sanitize_text_field( $data['period_month'] ?? gmdate( 'Y-m' ) ),

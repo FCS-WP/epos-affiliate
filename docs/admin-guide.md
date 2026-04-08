@@ -2,64 +2,113 @@
 
 ## Table of Contents
 
-1. [Create a Reseller](#1-create-a-reseller)
-2. [Create a BD Agent](#2-create-a-bd-agent)
-3. [Manage Commissions](#3-manage-commissions)
-4. [Deactivate & Reactivate Accounts](#4-deactivate--reactivate-accounts)
-5. [QR Codes](#5-qr-codes)
-6. [Serial Numbers](#6-serial-numbers)
-7. [Settings](#7-settings)
-8. [Troubleshooting](#8-troubleshooting)
-9. [Quick Reference](#9-quick-reference)
+1. [Product Catalog](#1-product-catalog)
+2. [Create a Reseller](#2-create-a-reseller)
+3. [Assign Products to Reseller](#3-assign-products-to-reseller)
+4. [Create a BD Agent](#4-create-a-bd-agent)
+5. [Manage Commissions](#5-manage-commissions)
+6. [Deactivate & Reactivate Accounts](#6-deactivate--reactivate-accounts)
+7. [QR Codes](#7-qr-codes)
+8. [Serial Numbers](#8-serial-numbers)
+9. [Troubleshooting](#9-troubleshooting)
+10. [Quick Reference](#10-quick-reference)
 
 ---
 
-## 1. Create a Reseller
+## 1. Product Catalog
 
-A Reseller is a partner organization whose BD agents sell EPOS products. Each reseller gets their own login, dashboard, and QR code.
+Before creating resellers, define the products available in the affiliate program.
+
+### Navigate
+
+Go to **WP Admin → EPOS Affiliate → Products**
+
+### Adding a Product
+
+1. Click **"Add Product"**
+2. Fill in:
+
+| Field | Description | Example |
+|-------|-------------|---------|
+| **Product Label** | Short code used in the affiliate system. Must be unique. | `A01`, `Series 1` |
+| **WooCommerce Product** | Select the linked WC product from dropdown | `BlueTap (RM 188.00)` |
+| **Default Commission** | Fixed commission amount per order. Can be overridden per reseller. | `RM 20.00` |
+
+3. Click **"Add Product"**
+
+### Editing / Deleting
+
+- Click **Edit** icon to update label, WC product, or default commission
+- Click **Delete** icon to remove from catalog
+
+> **Note:** Products in the catalog can be assigned to multiple resellers. Each reseller can have a custom commission amount that overrides the catalog default.
+
+---
+
+## 2. Create a Reseller
 
 ### Information needed
 
 | Field | Description | Required | Example |
 |-------|-------------|----------|---------|
 | **Reseller Name** | Company or organization name | Yes | `Acme Resellers Sdn Bhd` |
-| **Slug** | Unique identifier (lowercase, hyphens). Used in tracking codes and URLs | Yes | `acme` |
+| **Code Prefix** | Uppercase letters/numbers. System auto-numbers. | Yes | `EPOS` → generates `EPOS-01` |
 | **Manager Email** | Email for the reseller manager's login account | Yes | `manager@acme.com` |
-
-> **Tip:** Prepare all 3 fields before creating. The slug cannot be changed after creation and must be unique.
 
 ### Steps
 
 1. Go to **WP Admin → EPOS Affiliate → Resellers**
 2. Click **"Add Reseller"**
-3. Fill in the form with the information above
+3. Enter the prefix — the system shows the actual code that will be assigned (e.g., `EPOS-01`)
 4. Click **"Create"**
 
 ### What happens automatically
 
-- A **WordPress user** is created with role `reseller_manager`
-- A **branded welcome email** is sent containing:
-  - Username and auto-generated password
-  - Login link to `/my/login/`
-  - Dashboard link to `/my/dashboard/reseller/`
-- A **BD record** is auto-created for the reseller (tracking code: `BD-[SLUG]-OWNER`) so they can also use QR tracking
-- A **QR code** is generated for the reseller's own tracking
+- **Reseller code** generated: `[PREFIX]-[NN]` (e.g., `EPOS-01`, `EPOS-02`)
+- **WordPress user** created with `reseller_manager` role
+- **Branded welcome email** sent with username, password, login link to `/my/login/`
+- **BD record** auto-created for the reseller (tracking code: `EPOS-01-OWNER`)
+- Dialog stays open in **edit mode** so you can assign products immediately
 
 ### After creation
 
-- The reseller can log in at `/my/login/` and access their dashboard
-- They can view BD performance, manage their BDs, and use their own QR code
-- Share the reseller's QR code or let them download it from their dashboard
+- The "Products" column shows a warning if no products are assigned
+- QR code only appears after at least one product is assigned
+- Assign products before sharing QR codes with the reseller
 
 ---
 
-## 2. Create a BD Agent
+## 3. Assign Products to Reseller
 
-A BD (Business Development) agent is a field salesperson linked to a reseller. Each BD gets a unique QR code and tracking code for attributing sales.
+### Steps
+
+1. In the Resellers list, click **Edit** on a reseller
+2. Scroll down to **"Assigned Products"**
+3. Click **"Add Product"**
+4. Select a product from the catalog dropdown (e.g., `A01 — BlueTap`)
+5. Commission auto-fills from catalog default — override if needed for this reseller
+6. Click **"Add Product"**
+
+### How it works
+
+- Products come from the **Product Catalog** — no manual label typing
+- Each reseller can have different products assigned
+- Commission can be customized per reseller (overrides catalog default)
+- Commission is inline-editable in the table — click the amount to change it
+- All BDs under the reseller inherit these product assignments
+- Already-assigned products are filtered out of the dropdown
+
+### Product column in Reseller list
+
+The Resellers list shows product labels as chips (e.g., `A01`, `Series 1`). If no products are assigned, a warning chip `None` appears.
+
+---
+
+## 4. Create a BD Agent
 
 ### Prerequisites
 
-- At least one **active reseller** must exist
+- At least one **active reseller** with **products assigned**
 
 ### Information needed
 
@@ -67,60 +116,41 @@ A BD (Business Development) agent is a field salesperson linked to a reseller. E
 |-------|-------------|----------|---------|
 | **BD Name** | Full name of the sales agent | Yes | `John Smith` |
 | **BD Email** | Email for the BD's login account | Yes | `john@acme.com` |
-| **Reseller** | Which reseller this BD belongs to (select from dropdown) | Yes | `Acme Resellers Sdn Bhd` |
-| **BD Code** | Short unique code (uppercase, no spaces). Combined with reseller slug to form the tracking code | Yes | `JS001` |
+| **Reseller** | Which reseller this BD belongs to | Yes | `Acme Resellers (EPOS-01)` |
 
-> **Tip:** The system will preview the tracking code as you type. For example, reseller `acme` + BD code `JS001` = tracking code `BD-ACME-JS001`.
+> **Note:** BD code is auto-generated. No manual code entry needed.
 
 ### Steps
 
 1. Go to **WP Admin → EPOS Affiliate → BD Agents**
 2. Click **"Add BD"**
-3. Fill in the form with the information above
-4. Verify the **tracking code preview** is correct
+3. Fill in name, email, select reseller
+4. The system shows the tracking code that will be assigned (e.g., `EPOS-01-001`)
 5. Click **"Create BD"**
 
 ### What happens automatically
 
-- A **WordPress user** is created with role `bd_agent`
-- A **branded welcome email** is sent containing:
-  - Username and auto-generated password
-  - Reseller name they belong to
-  - Login link to `/my/login/`
-  - Dashboard link to `/my/dashboard/bd/`
-- A **tracking code** is generated: `BD-[RESELLER_SLUG]-[BD_CODE]`
-- A **QR token** (random 32-character hex) is generated for the QR URL
-- A **WooCommerce coupon** is created for record-keeping (not applied to orders)
-
-### After creation
-
-- The BD can log in at `/my/login/` and access their dashboard
-- They can view their QR code, orders, and sales performance
-- Share the QR code with the BD or let them download it from their dashboard
+- **Tracking code** auto-generated: `[RESELLER_CODE]-[NNN]` (e.g., `EPOS-01-001`)
+- **WordPress user** created with `bd_agent` role
+- **Branded welcome email** sent with credentials, reseller name, login link
+- **QR token** generated for the BD's QR code
+- BD inherits all product assignments from their reseller
 
 ### QR Code Flow
 
-When a customer scans a BD's QR code:
-
 ```
 Customer scans QR → /my/qr/[TOKEN]
-  → Server validates BD & rate limits (5/hr per IP)
-  → Redirects to /my/bluetap/ with BD params
-  → Cart cleared, BlueTap product added
-  → BD info stored in session (invisible to customer)
-  → Redirect to /my/checkout/
+  → BD attribution stored in cookie (survives browser close, 7 days)
+  → If 1 product assigned → direct add-to-cart + checkout
+  → If multiple products → product selection page
   → Customer pays normally
-  → Order gets BD attribution in meta (invisible)
+  → Order gets BD attribution (invisible to customer)
   → Commission record created (pending)
 ```
 
-The customer sees a normal checkout — no coupon, no BD info visible.
-
 ---
 
-## 3. Manage Commissions
-
-Commissions are automatically created when a BD-attributed order reaches `processing` status. The admin must review, approve, and mark as paid.
+## 5. Manage Commissions
 
 ### Commission States
 
@@ -130,222 +160,140 @@ pending → approved → paid
      voided    voided
 ```
 
-| Status | Meaning |
-|--------|---------|
-| **Pending** | Commission created, awaiting admin review |
-| **Approved** | Admin verified the sale is valid, ready for payout |
-| **Paid** | Finance has processed the bank transfer |
-| **Voided** | Commission cancelled (e.g., fraudulent order, refund) |
+### Viewing & Filtering
 
-### Viewing Commissions
+Go to **WP Admin → EPOS Affiliate → Commissions**
 
-1. Go to **WP Admin → EPOS Affiliate → Commissions**
-2. Use filters to narrow the list:
-   - **Status**: Pending, Approved, Paid, Voided
-   - **Type**: Sales, Usage Bonus
+Available filters:
+- **Reseller** — filter by reseller (BD dropdown auto-filters to match)
+- **BD** — filter by specific BD agent
+- **Status** — Pending, Approved, Paid, Voided
 
-### Approving a Single Commission
+### Actions
 
-1. Find the commission in the list
-2. Click the **Approve** button (checkmark icon) in the Actions column
-3. A **confirmation dialog** appears showing the commission amount and BD name
-4. Click **"Approve"** to confirm
-5. The status changes from `pending` → `approved`
+All actions show a **MUI confirmation dialog** before executing:
 
-### Bulk Approve
-
-1. Select multiple commissions using the checkboxes
-2. Click the **"Approve"** button at the top
-3. A **confirmation dialog** shows the count of selected commissions
-4. Click **"Approve"** to confirm
-
-### Processing Payout
-
-1. Filter commissions by **Status: Approved**
-2. Click **"Export CSV"** to download the payout report
-3. Send the CSV to the finance team for bank transfers
-4. After finance confirms payment:
-   - Select the paid commissions
-   - Click **"Mark Paid"**
-   - Confirm in the dialog
-   - Or update individually using the paid icon per row
-
-### Voiding a Commission
-
-1. Find the commission
-2. Click the **Void** button (block icon) in the Actions column
-3. A **confirmation dialog** warns "This action cannot be undone"
-4. Click **"Void"** to confirm
-5. The commission is marked as `voided` and excluded from payout reports
+- **Approve** (checkmark icon) — `pending` → `approved`
+- **Mark Paid** (paid icon) — `approved` → `paid`
+- **Void** (block icon) — warns "cannot be undone"
+- **Bulk actions** — select multiple via checkboxes, then Approve / Mark Paid / Void
 
 ### Commission Calculation
 
-| Field | Formula |
-|-------|---------|
-| **Order Value (Net)** | Order Total − Tax − Shipping |
-| **Commission Amount** | Net Order Value × Commission Rate (%) |
-| **Commission Rate** | Set in EPOS Affiliate → Settings |
+Commission is a **fixed amount** per order, configured per product per reseller.
+
+| Source | Example |
+|--------|---------|
+| Product assignment for reseller | `A01 → RM 20.00` |
+| No assignment found | Commission = `RM 0.00` |
+
+### Processing Payout
+
+1. Filter by **Status: Approved**
+2. Click **"Export CSV"** — filters are included in the export
+3. Send CSV to finance for bank transfers
+4. After payment: select commissions → **"Mark Paid"**
 
 ---
 
-## 4. Deactivate & Reactivate Accounts
+## 6. Deactivate & Reactivate Accounts
 
-### Deactivating a Reseller
+### Deactivating
 
-1. Go to **WP Admin → EPOS Affiliate → Resellers**
-2. Click the **Deactivate** button (block icon) on the reseller's row
-3. A **confirmation dialog** appears warning that the reseller will be logged out immediately
-4. Click **"Deactivate"** to confirm
+1. Click the **Deactivate** button (block icon) on the reseller/BD row
+2. Confirmation dialog warns "will be logged out immediately"
+3. Click **"Deactivate"**
 
 **What happens:**
-- Reseller's status is set to `inactive` in the database
-- If they are currently logged in, they are **immediately logged out** and redirected to `/my/login/`
-- All REST API calls return `403 Forbidden`
-- Their BDs are **not** automatically deactivated (deactivate individually if needed)
+- Account status → `inactive`
+- User immediately logged out → redirected to `/my/login/?account_disabled=1`
+- All REST API calls return `403`
+- QR code stops working (no products available for inactive accounts)
 
-### Deactivating a BD
+### Reactivating
 
-1. Go to **WP Admin → EPOS Affiliate → BD Agents**
-2. Click the **Deactivate** button on the BD's row
-3. A **confirmation dialog** shows the BD name and tracking code, warns their coupon will be disabled
-4. Click **"Deactivate"** to confirm
-
-**What happens:**
-- BD's status is set to `inactive`
-- If currently logged in, they are **immediately logged out**
-- Their WooCommerce tracking coupon is disabled
-- QR code scans will no longer attribute orders to this BD
-
-### Reactivating an Account
-
-1. On the Resellers or BD Agents list, inactive accounts show a **Reactivate** button (green checkmark)
-2. Click it, confirm in the dialog
-3. The account is set back to `active` and the user can log in again
+1. Click the green **Reactivate** button on inactive accounts
+2. Confirm in dialog
+3. Account status → `active`, user can log in again
 
 ---
 
-## 5. QR Codes
+## 7. QR Codes
 
-Every Reseller and BD has a QR code. You can view any QR code from the admin dashboard.
+### When QR appears
 
-### Viewing a QR Code
+QR codes only appear when a reseller/BD has **at least one product assigned**. No products = no QR.
 
-1. On the **Resellers** or **BD Agents** list, click the **QR icon** in the QR column
-2. A popup dialog shows:
-   - Name and tracking code
-   - QR code image
-   - Full QR URL
-3. Actions available:
-   - **Copy Link** — copy the QR URL to clipboard
-   - **Download** — save as 600×600 PNG
-   - **Share** — native share (on supported browsers)
+### Admin QR Popup
 
-### QR URL Format
+On the Resellers or BD Agents list:
+1. Click the **QR icon** in the QR column
+2. Popup shows: name, tracking code, QR image, URL
+3. **Copy Link** / **Download PNG** / **Share**
 
-```
-https://www.epos.com/my/qr/[QR_TOKEN]
-```
+### Customer flow (multi-product)
 
-The QR token is a random 32-character hex string, unique per BD/Reseller.
+If a BD's reseller has **multiple products** assigned, the customer sees a **product selection page** after scanning:
+- Clean branded page with product cards
+- Each card shows: product label, WC product name, price
+- Customer taps to select → product added to cart → checkout
+
+If only **1 product**, customer goes directly to checkout (no selection page).
 
 ---
 
-## 6. Serial Numbers
-
-Serial numbers can be assigned to orders for device tracking.
-
-### Assigning Serial Numbers
+## 8. Serial Numbers
 
 1. Go to **WP Admin → EPOS Affiliate → Serial Numbers**
-2. Click **"Assign S/N"**
-3. Enter the order number and serial number
-4. Click **"Assign"**
-
-### From WooCommerce Order
-
-1. Open any order in **WooCommerce → Orders**
-2. Find the **EPOS Serial Numbers** metabox
-3. Enter the serial number and click **"Assign"**
+2. Click **"Assign S/N"** → enter order number + serial number
+3. Or assign from WooCommerce order edit → **EPOS Serial Numbers** metabox
 
 ---
 
-## 7. Settings
-
-Go to **WP Admin → EPOS Affiliate → Settings** to configure:
-
-| Setting | Description | Default |
-|---------|-------------|---------|
-| BlueTap Product ID | WooCommerce product added to cart on QR scan | `2174` |
-| Sales Commission Rate | Percentage of net order value | `10%` |
-
----
-
-## 8. Troubleshooting
+## 9. Troubleshooting
 
 ### Commission Issues
 
 | Issue | Where to check |
 |-------|---------------|
 | Commission not created | WooCommerce → Status → Logs → `epos-affiliate` |
+| Commission = RM 0.00 | Check product assignment exists for this reseller + product |
 | Order has no BD attribution | Check order meta for `_bd_coupon_code` and `_bd_user_id` |
-| BD not found error | Verify the BD exists and is `active` in BD Agents list |
 | Duplicate commission | Check `_epos_attribution_processed` meta on the order |
 
 ### Account Issues
 
 | Issue | Solution |
 |-------|----------|
-| Reseller/BD can't log in | Check account status is `active` in admin list |
-| Deactivated user still has access | They will be logged out on next page load automatically |
-| Welcome email not received | Check spam folder. Verify email is correct in user list |
-| User forgot password | They can use "Forgot Password" on the login page |
-
-### Checking Order Attribution in WooCommerce
-
-Each BD-attributed order has notes visible in **WooCommerce → Orders → [Order] → Order Notes**:
-
-**On order creation:**
-```
-🔗 BD Attribution: This order was referred by John Smith
-   (Tracking: BD-ACME-JS001). Reseller ID: 1. Source: QR Code.
-```
-
-**On order processing:**
-```
-✅ Sales Commission Created
-━━━━━━━━━━━━━━━━━━━━
-BD Agent: John Smith
-Tracking Code: BD-ACME-JS001
-Reseller ID: 1
-Order Value (net): RM 188.00
-Commission Rate: 10%
-Commission Amount: RM 18.80
-Commission Status: Pending
-Period: 2026-03
-```
+| Reseller/BD can't log in | Check account status is `active` |
+| Welcome email not received | Check spam folder. Verify email in user list |
+| User forgot password | "Forgot Password" on login page — 6-digit code via email |
+| QR code not showing | Assign products to the reseller first |
+| QR scan shows "No products available" | No active product assignments for the BD's reseller |
 
 ---
 
-## 9. Quick Reference
+## 10. Quick Reference
 
-### Pilot Checklist — What You Need Before Going Live
+### Pilot Checklist
 
-**To create a Reseller, prepare:**
-1. Company/organization name
-2. Unique slug (lowercase, e.g., `acme`)
-3. Manager's email address
+**Before creating any accounts:**
+1. Set up Product Catalog (Products page) — add at least one product with label + commission
 
-**To create a BD Agent, prepare:**
-1. BD's full name
-2. BD's email address
-3. Which reseller they belong to
-4. Short BD code (uppercase, e.g., `JS001`)
+**To create a Reseller:**
+1. Reseller name
+2. Code prefix (e.g., `EPOS`)
+3. Manager email
 
-**After creating accounts:**
-- [ ] Verify welcome emails were received
-- [ ] Have users log in at `/my/login/` and change their password
-- [ ] Test QR code scan → checkout → order → commission flow
-- [ ] Check commission appears in admin Commissions list as `pending`
+**After creating a Reseller:**
+1. Assign products from catalog
+2. Verify QR code appears
+3. Test QR scan → checkout → commission
+
+**To create a BD:**
+1. BD name
+2. BD email
+3. Select reseller (code auto-generated)
 
 ### Admin URLs
 
@@ -356,7 +304,7 @@ Period: 2026-03
 | BD Agents | `wp-admin/admin.php?page=epos-affiliate-bds` |
 | Commissions | `wp-admin/admin.php?page=epos-affiliate-commissions` |
 | Serial Numbers | `wp-admin/admin.php?page=epos-affiliate-serial-numbers` |
-| Settings | `wp-admin/admin.php?page=epos-affiliate-settings` |
+| Products | `wp-admin/admin.php?page=epos-affiliate-products` |
 
 ### User Roles
 

@@ -40,24 +40,19 @@ class ResellerBDController {
             return new WP_REST_Response( [ 'message' => 'Reseller not found.' ], 403 );
         }
 
-        $name    = sanitize_text_field( $request->get_param( 'name' ) );
-        $email   = sanitize_email( $request->get_param( 'email' ) );
-        $bd_code = strtoupper( sanitize_text_field( $request->get_param( 'bd_code' ) ) );
+        $name  = sanitize_text_field( $request->get_param( 'name' ) );
+        $email = sanitize_email( $request->get_param( 'email' ) );
 
-        if ( ! $name || ! $bd_code ) {
-            return new WP_REST_Response( [ 'message' => 'Name and BD code are required.' ], 400 );
+        if ( ! $name ) {
+            return new WP_REST_Response( [ 'message' => 'Name is required.' ], 400 );
         }
 
         if ( ! $email ) {
             return new WP_REST_Response( [ 'message' => 'Email is required.' ], 400 );
         }
 
-        // Build tracking code.
-        $tracking_code = 'BD-' . strtoupper( $reseller->slug ) . '-' . $bd_code;
-
-        if ( BD::find_by_tracking_code( $tracking_code ) ) {
-            return new WP_REST_Response( [ 'message' => 'Tracking code already exists. Try a different BD code.' ], 400 );
-        }
+        // Auto-generate tracking code: [RESELLER_CODE]-[NNN] (e.g., EPOS-01-001).
+        $tracking_code = BD::generate_tracking_code( $reseller->id, $reseller->slug );
 
         if ( email_exists( $email ) ) {
             return new WP_REST_Response( [ 'message' => 'Email already in use.' ], 400 );

@@ -100,6 +100,36 @@ class Reseller {
     }
 
     /**
+     * Get the next reseller number for a given prefix.
+     * E.g., if EPOS-01, EPOS-02 exist, returns 3.
+     */
+    public static function next_number_for_prefix( $prefix ) {
+        global $wpdb;
+        $prefix_upper = strtoupper( $prefix );
+        $like_pattern = $prefix_upper . '-%';
+
+        $max = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT MAX(CAST(SUBSTRING_INDEX(slug, '-', -1) AS UNSIGNED)) FROM %i WHERE UPPER(slug) LIKE %s",
+                self::table(),
+                $like_pattern
+            )
+        );
+
+        return ( (int) $max ) + 1;
+    }
+
+    /**
+     * Generate a reseller code from prefix.
+     * Format: [PREFIX]-[NN] (e.g., EPOS-01, QASHIER-01)
+     */
+    public static function generate_code( $prefix ) {
+        $prefix = strtoupper( preg_replace( '/[^A-Za-z0-9]/', '', $prefix ) );
+        $number = self::next_number_for_prefix( $prefix );
+        return $prefix . '-' . str_pad( $number, 2, '0', STR_PAD_LEFT );
+    }
+
+    /**
      * Count resellers by status.
      */
     public static function count( $status = null ) {

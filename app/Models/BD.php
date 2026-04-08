@@ -138,6 +138,38 @@ class BD {
     }
 
     /**
+     * Get the next BD number for a given reseller.
+     * Counts all BDs (excluding OWNER) under the reseller and returns next number.
+     * E.g., if EPOS-01-001, EPOS-01-002 exist, returns 3.
+     */
+    public static function next_number_for_reseller( $reseller_id ) {
+        global $wpdb;
+
+        $max = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT MAX(CAST(SUBSTRING_INDEX(tracking_code, '-', -1) AS UNSIGNED))
+                 FROM %i
+                 WHERE reseller_id = %d
+                   AND tracking_code NOT LIKE '%%OWNER'",
+                self::table(),
+                $reseller_id
+            )
+        );
+
+        return ( (int) $max ) + 1;
+    }
+
+    /**
+     * Generate a BD tracking code for a reseller.
+     * Format: [RESELLER_CODE]-[NNN] (e.g., EPOS-01-001)
+     */
+    public static function generate_tracking_code( $reseller_id, $reseller_slug ) {
+        $reseller_code = strtoupper( $reseller_slug );
+        $number        = self::next_number_for_reseller( $reseller_id );
+        return $reseller_code . '-' . str_pad( $number, 3, '0', STR_PAD_LEFT );
+    }
+
+    /**
      * Generate a unique random token for QR URLs.
      */
     public static function generate_token() {

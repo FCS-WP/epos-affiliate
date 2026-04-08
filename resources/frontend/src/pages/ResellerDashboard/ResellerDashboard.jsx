@@ -299,8 +299,8 @@ export default function ResellerDashboard() {
         </Box>
       </Box>
 
-      {/* ── QR Tracking Card (if reseller has a BD record) ── */}
-      {profile?.tracking_code && (
+      {/* ── QR Tracking Card (only if products are assigned) ── */}
+      {profile?.tracking_code && profile?.products?.length > 0 && (
         <Card
           sx={{
             mb: 3,

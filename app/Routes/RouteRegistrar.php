@@ -19,11 +19,12 @@ class RouteRegistrar {
         BDRoutes::register();
         CommissionRoutes::register();
         DashboardRoutes::register();
-        SettingsRoutes::register();
         ExportRoutes::register();
         ProfileRoutes::register();
         AuthRoutes::register();
         SerialNumberRoutes::register();
+        ProductCatalogRoutes::register();
+        ProductAssignmentRoutes::register();
     }
 
     // ── Shared permission callbacks ──

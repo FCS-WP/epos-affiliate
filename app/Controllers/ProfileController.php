@@ -4,6 +4,7 @@ namespace EposAffiliate\Controllers;
 
 use EposAffiliate\Models\Reseller;
 use EposAffiliate\Models\BD;
+use EposAffiliate\Models\ProductAssignment;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_Error;
@@ -77,6 +78,21 @@ class ProfileController {
             if ( ! isset( $profile['reseller_id'] ) ) {
                 $profile['reseller_id'] = $bd->reseller_id;
             }
+
+            // Assigned products (for display — single QR code covers all products).
+            $assignments = ProductAssignment::effective_for_bd( $bd->id, $bd->reseller_id );
+            $products    = [];
+            foreach ( $assignments as $a ) {
+                if ( $a->status !== 'active' ) continue;
+                $wc_product = wc_get_product( $a->product_id );
+                $wc_name    = $wc_product ? $wc_product->get_name() : "Product #{$a->product_id}";
+                $products[] = [
+                    'product_id'    => (int) $a->product_id,
+                    'product_label' => $a->product_label ?: $wc_name,
+                    'product_name'  => $wc_name,
+                ];
+            }
+            $profile['products'] = $products;
         }
 
         return new WP_REST_Response( $profile, 200 );

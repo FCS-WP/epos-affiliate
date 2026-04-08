@@ -9,9 +9,12 @@ import Tooltip from '@mui/material/Tooltip';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
+import Chip from '@mui/material/Chip';
+import Stack from '@mui/material/Stack';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DownloadIcon from '@mui/icons-material/Download';
 import ShareIcon from '@mui/icons-material/Share';
+import InventoryIcon from '@mui/icons-material/Inventory';
 import { alpha, useTheme } from '@mui/material/styles';
 import api from '../../api/client';
 
@@ -30,6 +33,8 @@ export default function BDQRCode() {
       .finally(() => setLoading(false));
   }, []);
 
+  const products = profile?.products || [];
+
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(profile.qr_url);
@@ -44,8 +49,8 @@ export default function BDQRCode() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'EPOS BlueTap',
-          text: 'Get your BlueTap device here!',
+          title: 'EPOS Product',
+          text: 'Get your EPOS device here!',
           url: profile.qr_url,
         });
       } catch { /* user cancelled */ }
@@ -79,8 +84,8 @@ export default function BDQRCode() {
     return <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}><CircularProgress /></Box>;
   }
 
-  if (!profile?.qr_url) {
-    return <Alert severity="warning" sx={{ m: 2 }}>No QR code available.</Alert>;
+  if (!profile?.qr_url || products.length === 0) {
+    return <Alert severity="warning" sx={{ m: 2 }}>No QR code available. Contact your admin to assign products.</Alert>;
   }
 
   return (
@@ -148,7 +153,7 @@ export default function BDQRCode() {
       </Paper>
 
       {/* Action Buttons */}
-      <Box sx={{ display: 'flex', gap: 1.5, flexDirection: { xs: 'column', sm: 'row' } }}>
+      <Box sx={{ display: 'flex', gap: 1.5, flexDirection: { xs: 'column', sm: 'row' }, mb: 3 }}>
         <Button
           variant="contained"
           fullWidth
@@ -166,6 +171,33 @@ export default function BDQRCode() {
           Share Link
         </Button>
       </Box>
+
+      {/* Assigned Products */}
+      {products.length > 0 && (
+        <Paper sx={{ p: 2, textAlign: 'left' }}>
+          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+            <InventoryIcon fontSize="small" color="action" />
+            <Typography variant="subtitle2" fontWeight={600}>
+              Assigned Products
+            </Typography>
+          </Stack>
+          <Stack direction="row" flexWrap="wrap" gap={1}>
+            {products.map((p) => (
+              <Chip
+                key={p.product_id}
+                label={p.product_label || p.product_name}
+                variant="outlined"
+                size="small"
+              />
+            ))}
+          </Stack>
+          {products.length > 1 && (
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 1.5, display: 'block' }}>
+              When a customer scans your QR code, they will be asked to choose a product.
+            </Typography>
+          )}
+        </Paper>
+      )}
 
       <Snackbar
         open={snackbar.open}

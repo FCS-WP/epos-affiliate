@@ -12,6 +12,9 @@ global $wpdb;
 
 // Drop custom tables.
 $tables = [
+    $wpdb->prefix . 'epos_product_assignments',
+    $wpdb->prefix . 'epos_product_catalog',
+    $wpdb->prefix . 'epos_serial_numbers',
     $wpdb->prefix . 'epos_commissions',
     $wpdb->prefix . 'epos_order_attributions',
     $wpdb->prefix . 'epos_bds',
@@ -23,7 +26,6 @@ foreach ( $tables as $table ) {
 }
 
 // Remove plugin options.
-delete_option( 'epos_affiliate_settings' );
 delete_option( 'epos_affiliate_db_version' );
 
 // Remove custom roles.

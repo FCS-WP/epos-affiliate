@@ -16,238 +16,162 @@
 
 ### First Login
 
-You will receive a **welcome email** when your account is created. The email contains:
+You will receive a **welcome email** with:
 - Your **username**
 - Your **temporary password**
 - A link to the **login page**
 
 **Steps:**
-1. Open the login link from your email: `/my/login/`
-2. Enter your username and password
+1. Go to `/my/login/`
+2. Enter your credentials
 3. You will be redirected to your **Reseller Dashboard**
 
-> **Important:** Change your password after your first login. Go to **Profile → Change Password**.
+> **Important:** Change your password after first login via **Profile → Change Password**.
 
-### Login URL
+### Forgot Password
 
-```
-https://www.epos.com/my/login/
-```
-
-After logging in, you are automatically redirected to your dashboard at `/my/dashboard/reseller/`.
+1. On the login page, click **"Forgot Password?"**
+2. Enter your username or email
+3. Check your email for a **6-digit reset code**
+4. Enter the code + new password on the reset page
 
 ---
 
 ## 2. Your Dashboard
 
-Your dashboard shows an overview of your team's sales performance.
-
 ### KPI Cards
 
 | Card | Description |
 |------|-------------|
-| **Total Orders** | Number of orders attributed to your team |
-| **Total Revenue** | Total revenue from your team's attributed orders |
-| **Active BDs** | Number of currently active BD agents under you |
+| **Total Orders** | Orders attributed to your team |
+| **Total Revenue** | Revenue from your team's orders |
+| **Active BDs** | Active BD agents under you |
 
 ### QR Tracking Card
 
-Your own QR code is displayed on the dashboard. You can use this QR code to personally refer customers, just like your BDs.
+Your own QR code for personal referrals (only visible if products are assigned).
 
 ### BD Performance Table
 
-Shows a ranked list of your BD agents with:
-- Number of orders
-- Revenue generated
-- "View Orders" button to drill down into each BD's order history
-
-### Filters
-
-- **Date range** — filter KPIs and tables by date period
-- **Search** — search BDs by name
-- **Export CSV** — download performance data
+Ranked list of your BDs with orders, revenue, and "View Orders" drill-down.
 
 ---
 
 ## 3. Your QR Code
 
-As a Reseller, you have your own QR code for personal referrals.
+You have **one QR code** that covers all your assigned products.
 
 ### How it works
 
-1. A customer scans your QR code
-2. They are taken to the EPOS product page with the product pre-added to cart
-3. The customer completes checkout normally
-4. The order is attributed to you and a commission is recorded
-
-### Viewing your QR Code
-
-- On your **Dashboard**, your QR code is displayed in the QR Tracking Card
-- Go to **QR Code** page from the sidebar for the full view
+- Customer scans your QR
+- If you have **1 product** → goes directly to checkout
+- If you have **multiple products** → customer sees a selection page to choose
+- Order is attributed to you, commission recorded
 
 ### Actions
 
 | Action | Description |
 |--------|-------------|
-| **Copy Link** | Copy your QR URL to clipboard — useful for sharing via messaging apps |
-| **Download PNG** | Save the QR code as an image file (600×600 pixels) |
-| **Share** | Use your device's native share feature (mobile) |
+| **Copy Link** | Copy URL to clipboard |
+| **Download PNG** | Save as 600x600 image |
+| **Share** | Native share (mobile) |
 
-### Your QR URL Format
+### Assigned Products
 
-```
-https://www.epos.com/my/qr/[YOUR_TOKEN]
-```
+Below your QR code, you can see which products are assigned to you (e.g., `A01`, `Series 1`).
 
-> **Tip:** You can share the URL directly — the customer doesn't need to scan the QR image. The link works the same way.
+> **No QR code showing?** Contact your admin to assign products to your account.
 
 ---
 
 ## 4. Managing Your BDs
 
-You can add, edit, deactivate, and reactivate BD agents from your dashboard.
+Go to **Manage BDs** from the sidebar.
 
-### Navigate
+### Adding a BD
 
-Go to **Manage BDs** from the sidebar menu.
+| Field | Required | Example |
+|-------|----------|---------|
+| **BD Name** | Yes | `John Smith` |
+| **BD Email** | Yes | `john@example.com` |
 
-### Adding a New BD
-
-**Information needed:**
-
-| Field | Description | Required | Example |
-|-------|-------------|----------|---------|
-| **BD Name** | Full name of the sales agent | Yes | `John Smith` |
-| **BD Email** | Email for the BD's login account | Yes | `john@example.com` |
-| **BD Code** | Short unique code (uppercase, no spaces) | Yes | `JS001` |
+> **Note:** BD code and tracking code are auto-generated (e.g., `EPOS-01-001`).
 
 **Steps:**
 1. Click **"Add BD"**
-2. Fill in the name, email, and BD code
+2. Fill in name and email
 3. Click **"Create BD"**
+4. BD receives a welcome email with login credentials
 
-**What happens:**
-- A login account is created for the BD
-- A **welcome email** is sent with their login credentials
-- A unique QR code and tracking code are generated
-- The tracking code format is: `BD-[YOUR_SLUG]-[BD_CODE]`
+### Other actions
 
-### Editing a BD
+- **Edit** — update BD name
+- **Deactivate** — BD immediately logged out, QR stops working
+- **Reactivate** — BD regains access
+- **View QR** — see BD's QR code with copy/download
 
-1. Click the **Edit** icon on the BD's row
-2. Update the BD name
-3. Click **"Update"**
-
-> **Note:** Email, BD code, and tracking code cannot be changed after creation.
-
-### Viewing a BD's QR Code
-
-1. Click the **QR** icon on the BD's row
-2. A popup shows the QR code with copy, download, and share options
-
-### Deactivating a BD
-
-1. Click the **Deactivate** icon (block icon) on the BD's row
-2. A confirmation dialog appears
-3. Click **"Deactivate"** to confirm
-
-> **What happens:** The BD is immediately logged out, their QR code stops working, and they cannot access their dashboard.
-
-### Reactivating a BD
-
-1. Inactive BDs show a **Reactivate** icon (green checkmark)
-2. Click it and confirm in the dialog
-3. The BD can log in and use their QR code again
+All actions have **confirmation dialogs**.
 
 ---
 
 ## 5. Viewing BD Performance
 
-### BD Performance Rankings
+### Performance Rankings
 
-From your dashboard, the BD Performance table shows all your BDs ranked by performance:
+From your dashboard, the BD Performance table shows:
 - Orders count
 - Revenue generated
-- Progress bar showing relative performance
+- "View Orders" button per BD
 
-### Drill-Down: BD Orders
+### BD Orders (Drill-Down)
 
-1. Click **"View Orders"** on any BD's row
-2. See the full list of orders attributed to that BD:
-   - Order number
-   - Order date
-   - Order value
-   - Number of units
-3. Use **search** to find specific orders
-4. Use **date filter** to narrow by time period
-5. Click **"Export CSV"** to download the data
+Click **"View Orders"** to see a BD's full order history:
+- Order number, date, value, number of units
+- Search, date filter, export CSV
 
 ---
 
 ## 6. Your Profile
 
-Go to **Profile** from the sidebar menu to manage your account.
+Go to **Profile** from the sidebar.
 
-### Personal Information
+### Editable Fields
 
-| Field | Description |
-|-------|-------------|
-| **Name** | Your display name |
-| **Email** | Your login email |
-| **Phone** | Contact number |
-
-### Address
-
-| Field | Description |
-|-------|-------------|
-| **Address Line 1** | Street address |
-| **Address Line 2** | Additional address info |
-| **City** | City |
-| **State** | State |
-| **Postcode** | Postal code |
-
-### Bank Details (for Payout)
-
-| Field | Description |
-|-------|-------------|
-| **Bank Name** | Your bank's name |
-| **Account Number** | Bank account number |
-| **Account Holder Name** | Name on the bank account |
-
-> **Important:** Ensure your bank details are correct. Commissions are paid directly to this account.
-
-### Profile Photo
-
-Click the camera icon on your avatar to upload a profile photo.
+| Section | Fields |
+|---------|--------|
+| **Personal** | Name, Email, Phone |
+| **Address** | Address Line 1 & 2, City, State, Postcode |
+| **Bank Details** | Bank Name, Account Number, Account Holder |
+| **Photo** | Click camera icon to upload |
 
 ### Change Password
 
-1. Scroll down to the **Change Password** section
-2. Enter your **current password**
-3. Enter your **new password** (minimum 8 characters)
-4. Enter the new password again to **confirm**
-5. Click **"Change Password"**
-
-> **Security:** Your new password must be at least 8 characters and different from your current password.
+1. Scroll to **Change Password** section
+2. Enter current password
+3. Enter new password (min 8 characters) + confirm
+4. Click **"Change Password"**
 
 ---
 
 ## 7. FAQ
 
-**Q: I forgot my password. How do I reset it?**
-A: On the login page at `/my/login/`, click "Forgot Password?" to reset via email.
+**Q: I forgot my password.**
+A: Click "Forgot Password?" on the login page. A 6-digit code will be emailed to you.
+
+**Q: I can't see my QR code.**
+A: Your admin needs to assign products to your account first.
+
+**Q: What happens when a customer scans my QR and I have multiple products?**
+A: They see a product selection page and choose which product to buy.
 
 **Q: Can my BDs see my dashboard?**
-A: No. Each BD can only see their own data. They cannot see other BDs' data or your reseller dashboard.
-
-**Q: Can I see which orders came from my personal QR code vs my BDs?**
-A: Yes. Your personal orders use tracking code `BD-[SLUG]-OWNER`. You can filter by this in the orders view.
-
-**Q: What happens when I deactivate a BD?**
-A: They are immediately logged out, their QR code stops attributing orders, and they cannot access their dashboard. You can reactivate them at any time.
+A: No. Each BD only sees their own data.
 
 **Q: How are commissions paid?**
-A: Commissions are reviewed and approved by the admin team, then paid to the bank account in your profile. Make sure your bank details are up to date.
+A: Admin reviews and approves commissions, then pays to the bank account in your profile.
 
-**Q: I can't log in and see a message about my account being disabled.**
-A: Contact your admin. Your account may have been deactivated.
+**Q: My account is disabled.**
+A: Contact your admin to reactivate your account.
+
+**Q: Can I change my reseller code?**
+A: No. The reseller code is permanent.

@@ -218,8 +218,8 @@ export default function BDDashboard() {
         </Box>
       ) : (
         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2, mb: 3 }}>
-          {/* QR Card */}
-          {dashboard?.tracking_code && (
+          {/* QR Card — only show if products are assigned */}
+          {dashboard?.tracking_code && dashboard?.has_products && (
             <Card
               sx={{
                 border: `2px solid ${alpha(theme.palette.secondary.main, 0.2)}`,

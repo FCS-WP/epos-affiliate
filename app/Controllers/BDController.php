@@ -39,10 +39,9 @@ class BDController {
         $name        = sanitize_text_field( $request->get_param( 'name' ) );
         $email       = sanitize_email( $request->get_param( 'email' ) );
         $reseller_id = absint( $request->get_param( 'reseller_id' ) );
-        $bd_code     = strtoupper( sanitize_text_field( $request->get_param( 'bd_code' ) ) );
 
-        if ( ! $name || ! $reseller_id || ! $bd_code ) {
-            return new WP_REST_Response( [ 'message' => 'Name, reseller, and BD code are required.' ], 400 );
+        if ( ! $name || ! $reseller_id ) {
+            return new WP_REST_Response( [ 'message' => 'Name and reseller are required.' ], 400 );
         }
 
         $reseller = Reseller::find( $reseller_id );
@@ -50,13 +49,8 @@ class BDController {
             return new WP_REST_Response( [ 'message' => 'Reseller not found.' ], 404 );
         }
 
-        // Build tracking code: BD-[RESELLER_SLUG]-[BD_CODE]
-        $tracking_code = 'BD-' . strtoupper( $reseller->slug ) . '-' . $bd_code;
-
-        // Check uniqueness.
-        if ( BD::find_by_tracking_code( $tracking_code ) ) {
-            return new WP_REST_Response( [ 'message' => 'Tracking code already exists.' ], 400 );
-        }
+        // Auto-generate tracking code: [RESELLER_CODE]-[NNN] (e.g., EPOS-01-001).
+        $tracking_code = BD::generate_tracking_code( $reseller_id, $reseller->slug );
 
         // Create WP user for the BD.
         $wp_user_id = null;
@@ -116,6 +110,26 @@ class BDController {
         BD::update( $id, $data );
 
         return new WP_REST_Response( BD::find( $id ), 200 );
+    }
+
+    /**
+     * GET /bds/next-code?reseller_id=1 — Preview the next BD tracking code.
+     */
+    public static function preview_code( WP_REST_Request $request ) {
+        $reseller_id = absint( $request->get_param( 'reseller_id' ) );
+
+        if ( ! $reseller_id ) {
+            return new WP_REST_Response( [ 'message' => 'Reseller ID is required.' ], 400 );
+        }
+
+        $reseller = Reseller::find( $reseller_id );
+        if ( ! $reseller ) {
+            return new WP_REST_Response( [ 'message' => 'Reseller not found.' ], 404 );
+        }
+
+        $code = BD::generate_tracking_code( $reseller_id, $reseller->slug );
+
+        return new WP_REST_Response( [ 'code' => $code ], 200 );
     }
 
     public static function destroy( WP_REST_Request $request ) {

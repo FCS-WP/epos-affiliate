@@ -59,7 +59,6 @@ export default function ResellerBDs() {
   // Form state
   const [formName, setFormName] = useState("");
   const [formEmail, setFormEmail] = useState("");
-  const [formBDCode, setFormBDCode] = useState("");
 
   const fetchBDs = useCallback(async () => {
     setLoading(true);
@@ -85,7 +84,6 @@ export default function ResellerBDs() {
     setEditingBD(null);
     setFormName("");
     setFormEmail("");
-    setFormBDCode("");
     setDialogOpen(true);
   };
 
@@ -93,7 +91,6 @@ export default function ResellerBDs() {
     setEditingBD(bd);
     setFormName(bd.name);
     setFormEmail("");
-    setFormBDCode("");
     setDialogOpen(true);
   };
 
@@ -107,7 +104,6 @@ export default function ResellerBDs() {
         await api.post("/my/bds", {
           name: formName,
           email: formEmail,
-          bd_code: formBDCode,
         });
         showSnackbar(
           "BD created successfully. Login credentials sent via email.",
@@ -493,23 +489,11 @@ export default function ResellerBDs() {
                   required
                   helperText="Login credentials will be sent to this email"
                 />
-                <TextField
-                  label="BD Code"
-                  value={formBDCode}
-                  onChange={(e) =>
-                    setFormBDCode(
-                      e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""),
-                    )
-                  }
-                  fullWidth
-                  required
-                  helperText={
-                    formBDCode
-                      ? `Tracking code: BD-${(config.resellerSlug || "XXX").toUpperCase()}-${formBDCode}`
-                      : "Short unique code (e.g., JS001)"
-                  }
-                  inputProps={{ maxLength: 10 }}
-                />
+                <Alert severity="info" icon={false} sx={{ mt: 0 }}>
+                  <Typography variant="body2">
+                    Tracking code will be auto-generated based on reseller code.
+                  </Typography>
+                </Alert>
               </>
             )}
             {editingBD && (
@@ -540,7 +524,7 @@ export default function ResellerBDs() {
             variant="contained"
             onClick={handleSave}
             disabled={
-              saving || !formName || (!editingBD && (!formEmail || !formBDCode))
+              saving || !formName || (!editingBD && !formEmail)
             }
             startIcon={saving ? <CircularProgress size={18} /> : null}
           >

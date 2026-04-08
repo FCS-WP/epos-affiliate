@@ -54,6 +54,14 @@ class BDRoutes {
             ],
         ] );
 
+        register_rest_route( $ns, '/bds/next-code', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [ BDController::class, 'preview_code' ],
+                'permission_callback' => [ RouteRegistrar::class, 'can_manage' ],
+            ],
+        ] );
+
         register_rest_route( $ns, '/bds/(?P<id>\d+)', [
             [
                 'methods'             => 'GET',

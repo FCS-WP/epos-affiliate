@@ -2,623 +2,572 @@
 
 ## Table of Contents
 
-1. [Account Creation](#1-account-creation)
-2. [Login & Authentication](#2-login--authentication)
-3. [Forgot Password & Reset](#3-forgot-password--reset)
-4. [Change Password (Profile)](#4-change-password-profile)
-5. [Deactivate & Reactivate Accounts](#5-deactivate--reactivate-accounts)
-6. [QR Code Flow](#6-qr-code-flow)
-7. [Order Attribution & Commission](#7-order-attribution--commission)
-8. [Admin Commission Management](#8-admin-commission-management)
-9. [Dashboard Access & Permissions](#9-dashboard-access--permissions)
-10. [Profile Management](#10-profile-management)
-11. [Serial Numbers](#11-serial-numbers)
-12. [CSV Export](#12-csv-export)
-13. [Reseller BD Management](#13-reseller-bd-management)
+1. [Product Catalog](#1-product-catalog)
+2. [Account Creation](#2-account-creation)
+3. [Product Assignment](#3-product-assignment)
+4. [Login & Authentication](#4-login--authentication)
+5. [Forgot Password & Reset](#5-forgot-password--reset)
+6. [Change Password (Profile)](#6-change-password-profile)
+7. [Deactivate & Reactivate Accounts](#7-deactivate--reactivate-accounts)
+8. [QR Code Flow — Single Product](#8-qr-code-flow--single-product)
+9. [QR Code Flow — Multiple Products](#9-qr-code-flow--multiple-products)
+10. [Order Attribution & Commission](#10-order-attribution--commission)
+11. [Admin Commission Management](#11-admin-commission-management)
+12. [Dashboard Access & Permissions](#12-dashboard-access--permissions)
+13. [Profile Management](#13-profile-management)
+14. [Serial Numbers](#14-serial-numbers)
+15. [CSV Export](#15-csv-export)
+16. [Reseller BD Management](#16-reseller-bd-management)
 
 ---
 
-## 1. Account Creation
+## 1. Product Catalog
 
-### TC-1.1: Create Reseller (Admin)
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Go to WP Admin → EPOS Affiliate → Resellers | Reseller list page loads |
-| 2 | Click "Add Reseller" | Create dialog opens |
-| 3 | Fill: Name = `Test Reseller`, Slug = `test-reseller`, Email = `reseller@test.com` | Fields accept input |
-| 4 | Click "Create" | Dialog closes, success snackbar |
-| 5 | Check reseller list | New reseller with status `Active`, QR icon clickable |
-| 6 | Check email inbox for `reseller@test.com` | Branded welcome email with username, password, login link `/my/login/` |
-
-### TC-1.2: Create Reseller — Duplicate Email
+### TC-1.1: Add Product to Catalog
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Create reseller with existing email | Error: "Email already exists." |
+| 1 | Go to WP Admin → EPOS Affiliate → Products | Products page loads |
+| 2 | Click "Add Product" | Dialog opens |
+| 3 | Fill: Label = `A01`, WC Product = `BlueTap`, Commission = `20` | Fields accept input |
+| 4 | Click "Add Product" | Product appears in list with label, WC product name, price, commission |
 
-### TC-1.3: Create Reseller — Duplicate Slug
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Create reseller with existing slug | Error message shown |
-
-### TC-1.4: Create BD Agent (Admin)
+### TC-1.2: Duplicate Label
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Go to WP Admin → EPOS Affiliate → BD Agents | BD list loads |
-| 2 | Click "Add BD" | Create dialog opens |
-| 3 | Fill: Name = `Test BD`, Email = `bd@test.com`, Reseller = `Test Reseller`, BD Code = `TB001` | Tracking code preview: `BD-TEST-RESELLER-TB001` |
-| 4 | Click "Create BD" | Dialog closes, success snackbar |
-| 5 | Check BD list | New BD with status `Active`, tracking code, QR icon |
-| 6 | Check email inbox | Branded welcome email with username, password, reseller name, login link |
+| 1 | Try to add another product with label `A01` | Error: "A product with this label already exists." |
 
-### TC-1.5: Create BD — Duplicate Tracking Code
+### TC-1.3: Edit Catalog Product
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Create BD with same reseller + BD code | Error: "Tracking code already exists." |
+| 1 | Click Edit on `A01` | Dialog opens with current values |
+| 2 | Change commission to `25`, click "Update" | Updated in list |
 
-### TC-1.6: Create BD — Duplicate Email
+### TC-1.4: Delete Catalog Product
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Create BD with existing email | Error: "Email already exists." |
+| 1 | Click Delete on a product | Product removed from list |
+
+### TC-1.5: Add Multiple Products
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Add `A01` (BlueTap, RM 20) and `Series 1` (Series 1, RM 35) | Both appear in catalog list |
 
 ---
 
-## 2. Login & Authentication
+## 2. Account Creation
 
-### TC-2.1: Reseller Login
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Go to `/my/login/` | Login page loads with EPOS branding |
-| 2 | Enter reseller credentials from welcome email | Fields accept input |
-| 3 | Click "Sign In to Portal" | Loading spinner shown |
-| 4 | Wait for redirect | Redirected to `/my/dashboard/reseller/` |
-| 5 | Verify dashboard | KPI cards, QR card, BD performance visible |
-
-### TC-2.2: BD Login
+### TC-2.1: Create Reseller
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Go to `/my/login/` | Login page loads |
-| 2 | Enter BD credentials | Fields accept input |
-| 3 | Click "Sign In to Portal" | Redirected to `/my/dashboard/bd/` |
-| 4 | Verify dashboard | QR card, Total Orders, recent orders visible |
+| 1 | Go to Resellers, click "Add Reseller" | Dialog opens |
+| 2 | Fill: Name = `Test Reseller`, Prefix = `EPOS`, Email = `reseller@test.com` | Code preview shows `EPOS-01` (or next number) |
+| 3 | Click "Create" | Snackbar: "Reseller created. Now assign products below." Dialog stays open in edit mode |
+| 4 | Check Resellers list | New reseller with code `EPOS-01`, Products column shows `None` warning |
+| 5 | Check email | Branded welcome email with username, password, login link to `/my/login/` |
 
-### TC-2.3: Invalid Credentials
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Enter wrong password | Error: "Invalid username/email or password." |
-
-### TC-2.4: Non-affiliate User Login
+### TC-2.2: Reseller Code Auto-Numbering
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Login with regular WP user (subscriber/editor) | Error: "Your account does not have access to this portal." |
+| 1 | Create another reseller with prefix `EPOS` | Code = `EPOS-02` (auto-incremented) |
+| 2 | Create with prefix `QASHIER` | Code = `QASHIER-01` (new prefix series) |
 
-### TC-2.5: Access Dashboard Without Login
+### TC-2.3: Create BD Agent
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Go to BD Agents, click "Add BD" | Dialog opens |
+| 2 | Fill: Name = `John`, Email = `john@test.com`, Reseller = `Test Reseller (EPOS-01)` | Tracking code preview shows `EPOS-01-001` |
+| 3 | Click "Create BD" | BD appears with auto-generated tracking code |
+| 4 | Check email | Branded welcome email with reseller name |
+
+### TC-2.4: BD Code Auto-Numbering
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Create another BD under same reseller | Tracking code = `EPOS-01-002` |
+
+### TC-2.5: Duplicate Email
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Create reseller/BD with existing email | Error: "Email already exists." |
+
+---
+
+## 3. Product Assignment
+
+### TC-3.1: Assign Product to Reseller
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Edit a reseller | Assigned Products section visible |
+| 2 | Click "Add Product" | Dialog with catalog dropdown |
+| 3 | Select `A01 — BlueTap` | Commission auto-fills from catalog default (e.g., RM 20) |
+| 4 | Click "Add Product" | Product appears in table: Label=A01, Product=BlueTap, Commission=RM 20.00 |
+| 5 | Check Resellers list | Products column shows `A01` chip |
+| 6 | Check QR column | QR icon now visible |
+
+### TC-3.2: Assign Multiple Products
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Add `Series 1` to same reseller | Both `A01` and `Series 1` in assignment table |
+| 2 | Check Resellers list | Products column shows `A01` `Series 1` chips |
+
+### TC-3.3: Duplicate Assignment Prevention
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Try to add `A01` again to same reseller | Error: "This product is already assigned." |
+| 2 | Dropdown should not show already-assigned products | `A01` filtered out of dropdown |
+
+### TC-3.4: Override Commission
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | In assignment table, click commission amount for `A01` | Inline editable |
+| 2 | Change from `20` to `25`, press Enter | Saved, shows RM 25.00 |
+
+### TC-3.5: Remove Product Assignment
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Click Delete icon on `Series 1` | Product removed from table |
+| 2 | QR still shows (A01 still assigned) | QR icon visible |
+| 3 | Remove `A01` too | QR icon disappears (no products) |
+
+### TC-3.6: No Products = No QR
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Reseller with 0 products | Reseller list: QR column shows `—`, Products shows warning |
+| 2 | BD dashboard of that reseller's BD | QR card hidden |
+| 3 | BD QR Code page | Warning: "No QR code available. Contact your admin to assign products." |
+
+---
+
+## 4. Login & Authentication
+
+### TC-4.1: Reseller Login
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Go to `/my/login/` | Login page with EPOS branding |
+| 2 | Enter credentials | Redirected to `/my/dashboard/reseller/` |
+
+### TC-4.2: BD Login
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Enter BD credentials | Redirected to `/my/dashboard/bd/` |
+
+### TC-4.3: Invalid Credentials
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Wrong password | Error: "Invalid username/email or password." |
+
+### TC-4.4: Dashboard Access Without Login
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
 | 1 | Open `/my/dashboard/bd/` without login | Redirected to `/my/login/` |
 | 2 | Open `/my/dashboard/reseller/` without login | Redirected to `/my/login/` |
 
-### TC-2.6: Account Disabled Message
+### TC-4.5: Account Disabled
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Open `/my/login/?account_disabled=1` | Warning: "Your account has been disabled. Please contact your administrator." |
+| 1 | Open `/my/login/?account_disabled=1` | Warning: "Your account has been disabled." |
 
-### TC-2.7: WP Admin Blocked for Reseller/BD
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Login as Reseller, access `/wp-admin/` | Redirected to `/my/dashboard/reseller/` |
-| 2 | Login as BD, access `/wp-admin/` | Redirected to `/my/dashboard/bd/` |
-
-### TC-2.8: Remember Me
+### TC-4.6: WP Admin Blocked
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Login with "Remember Me" checked | Login successful |
-| 2 | Close browser, reopen dashboard URL | Still logged in |
+| 1 | Reseller tries `/wp-admin/` | Redirected to dashboard |
+| 2 | BD tries `/wp-admin/` | Redirected to dashboard |
 
 ---
 
-## 3. Forgot Password & Reset
+## 5. Forgot Password & Reset
 
-### TC-3.1: Forgot Password — Happy Path
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | On login page, click "Forgot Password?" | Forgot password view shown |
-| 2 | Enter username or email | Field accepts input |
-| 3 | Click "Send Reset Code" | View switches to "Reset Password" with code input |
-| 4 | Check email | Branded email with large 6-digit code, 15-min expiry note |
-| 5 | Enter the 6-digit code | Input: digits only, max 6 chars, monospace styling |
-| 6 | Enter new password (8+ chars) + confirm | Fields accept input |
-| 7 | Click "Reset Password" | Success: "Password has been reset successfully" |
-| 8 | Click "Back to Login" | Login view shown |
-| 9 | Login with new password | Login successful |
-
-### TC-3.2: Forgot Password — Non-existent User
+### TC-5.1: Happy Path
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Enter username/email that doesn't exist | Same generic success message (prevents user enumeration) |
-| 2 | Check inbox | No email received |
+| 1 | Click "Forgot Password?" | Forgot view shown |
+| 2 | Enter username/email, click "Send Reset Code" | Switches to reset view |
+| 3 | Check email | 6-digit code, branded email, 15-min expiry note |
+| 4 | Enter code + new password (8+ chars) + confirm | Success: "Password has been reset" |
+| 5 | Login with new password | Works |
 
-### TC-3.3: Reset — Wrong Code
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Enter incorrect 6-digit code | Error: "Invalid reset code or the code has expired." |
-
-### TC-3.4: Reset — Expired Code (15 min)
+### TC-5.2: Non-existent User
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Wait 15+ minutes after requesting code | — |
-| 2 | Enter the expired code | Error: "Reset code has expired. Please request a new one." |
+| 1 | Enter unknown email | Same success message (prevents enumeration) |
 
-### TC-3.5: Reset — Brute Force Protection (5 attempts)
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Enter wrong code 5 times | Error: "Too many failed attempts. Please request a new reset code." |
-| 2 | Try correct code after lockout | Still rejected (code invalidated) |
-| 3 | Request new code | New code works |
-
-### TC-3.6: Reset — Password Too Short
+### TC-5.3: Wrong Code
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Enter password < 8 characters | Error: "Password must be at least 8 characters long." |
+| 1 | Enter wrong 6-digit code | Error: "Invalid reset code" |
 
-### TC-3.7: Reset — Passwords Don't Match
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Enter different new + confirm passwords | Error: "Passwords do not match." |
-
-### TC-3.8: Resend Code
+### TC-5.4: Expired Code (15 min)
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Click "Didn't receive the code? Send again" | Goes back to forgot view |
-| 2 | Submit again | New code sent, old code invalidated |
+| 1 | Wait 15+ min, enter code | Error: "Reset code has expired" |
+
+### TC-5.5: Brute Force (5 attempts)
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Wrong code 5 times | Error: "Too many failed attempts" |
+| 2 | Correct code after lockout | Still rejected (invalidated) |
+| 3 | Request new code | Works |
 
 ---
 
-## 4. Change Password (Profile)
+## 6. Change Password (Profile)
 
-### TC-4.1: Change Password — Happy Path
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Login as Reseller or BD | Dashboard loads |
-| 2 | Go to Profile | Form loads with "Change Password" section at bottom |
-| 3 | Enter current password | Field accepts input |
-| 4 | Enter new password (8+ chars) | Helper: "Minimum 8 characters" |
-| 5 | Enter matching confirm password | Field accepts input |
-| 6 | Click "Change Password" | Success: "Password changed successfully." |
-| 7 | Verify still logged in | Dashboard still accessible (session re-authenticated) |
-| 8 | Logout, login with new password | Login successful |
-
-### TC-4.2: Wrong Current Password
+### TC-6.1: Happy Path
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Enter incorrect current password | Error: "Current password is incorrect." |
+| 1 | Profile → Change Password | Section visible |
+| 2 | Enter current + new (8+ chars) + confirm | Success alert |
+| 3 | Still logged in | Session re-authenticated |
+| 4 | Logout, login with new password | Works |
 
-### TC-4.3: Password Too Short
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Enter new password < 8 chars | Error: "New password must be at least 8 characters long." |
-
-### TC-4.4: Passwords Don't Match
+### TC-6.2: Wrong Current Password
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Enter different new + confirm | Error: "New password and confirmation do not match." |
+| 1 | Wrong current password | Error: "Current password is incorrect." |
 
-### TC-4.5: Same as Current
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Enter current password as new | Error: "New password must be different from the current password." |
-
-### TC-4.6: Show/Hide Toggle
+### TC-6.3: Too Short / Mismatch / Same
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Click eye icon on each field | Toggles between dots and visible text |
+| 1 | New password < 8 chars | Error message |
+| 2 | New ≠ confirm | Error message |
+| 3 | New = current | Error message |
 
 ---
 
-## 5. Deactivate & Reactivate Accounts
+## 7. Deactivate & Reactivate Accounts
 
-### TC-5.1: Deactivate Reseller (Admin)
+### TC-7.1: Deactivate Reseller
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Admin Resellers list, click Deactivate icon | Dialog: warning icon, reseller name, "logged out immediately" |
-| 2 | Click "Deactivate" | Status → `Inactive`, snackbar shown |
+| 1 | Click Deactivate on reseller | Dialog: "logged out immediately" |
+| 2 | Confirm | Status → `Inactive` |
 | 3 | Reseller was logged in | Immediately logged out → `/my/login/?account_disabled=1` |
-| 4 | Reseller tries to login | Logged out again with disabled message |
-| 5 | API calls with reseller session | Returns `403 Forbidden` |
+| 4 | API calls | Return `403` |
 
-### TC-5.2: Deactivate BD (Admin)
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Click Deactivate on active BD | Dialog: BD name + tracking code, "coupon will be disabled" |
-| 2 | Click "Deactivate" | BD deactivated, coupon disabled |
-| 3 | BD tries to access dashboard | Logged out → `/my/login/` |
-| 4 | Scan BD's QR code | Should NOT attribute orders |
-
-### TC-5.3: Reactivate Reseller
+### TC-7.2: Deactivate BD
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Click green checkmark on inactive reseller | Dialog: "will regain access" |
-| 2 | Click "Reactivate" | Status → `Active` |
-| 3 | Reseller logs in | Dashboard loads successfully |
+| 1 | Click Deactivate on BD | Dialog: tracking code shown |
+| 2 | Confirm | BD deactivated |
+| 3 | QR scan for this BD | Error: "Invalid or expired QR code" |
 
-### TC-5.4: Reactivate BD
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Click green checkmark on inactive BD | Confirmation dialog |
-| 2 | Click "Reactivate" | Status → `Active` |
-| 3 | BD logs in | Dashboard accessible, QR works again |
-
-### TC-5.5: Cancel Confirmation
+### TC-7.3: Reactivate
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Click Deactivate on any account | Dialog appears |
-| 2 | Click "Cancel" | Dialog closes, no status change |
+| 1 | Click green Reactivate on inactive account | Dialog → confirm |
+| 2 | Status → `Active` | Can login again |
+
+### TC-7.4: Cancel Dialog
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Click Deactivate, then Cancel | No change |
 
 ---
 
-## 6. QR Code Flow
+## 8. QR Code Flow — Single Product
 
-### TC-6.1: BD QR Scan → Checkout
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Scan BD's QR code or open URL | Redirected to `/my/bluetap/` |
-| 2 | Verify cart | BlueTap product (ID 2174), qty 1 |
-| 3 | Verify checkout page | Standard checkout, NO coupon, NO BD info visible |
-| 4 | Complete payment | Order `processing` |
-| 5 | Check order meta in WP Admin | `_bd_coupon_code`, `_bd_user_id`, `_reseller_id` present |
-| 6 | Check order notes | Attribution note visible |
-
-### TC-6.2: Reseller QR Scan → Checkout
+### TC-8.1: Scan → Direct Checkout
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Scan reseller's QR code | Same flow, tracking code = `BD-[SLUG]-OWNER` |
-| 2 | Complete checkout | Order attributed to reseller's BD record |
+| 1 | Reseller has only 1 product assigned (e.g., A01) | — |
+| 2 | Scan BD's QR code | Redirected to product page with add-to-cart |
+| 3 | Verify cart | Product in cart, qty 1 |
+| 4 | Verify checkout | Standard checkout, no BD info visible |
+| 5 | Complete payment | Order attributed to BD |
+| 6 | Check order meta | `_bd_coupon_code`, `_bd_user_id`, `_reseller_id`, `_epos_product_id` present |
 
-### TC-6.3: QR Rate Limiting
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Scan same QR 6 times in 1 hour from same IP | First 5 succeed, 6th rate-limited |
-
-### TC-6.4: QR for Inactive BD
+### TC-8.2: Cookie Persistence
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Deactivate BD, scan their QR | Should not redirect to checkout / show error |
+| 1 | Scan QR, close browser before checkout | — |
+| 2 | Reopen browser, go to product page | BD attribution cookie still present (24-hour expiry) |
 
-### TC-6.5: Admin QR Popup — Reseller
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Admin Resellers list, click QR icon | Popup: name, tracking code, QR image, URL |
-| 2 | Click "Copy Link" | URL copied, snackbar |
-| 3 | Click "Download" | PNG file downloaded (600x600) |
-| 4 | Click "Close" | Dialog closes |
-
-### TC-6.6: Admin QR Popup — BD
+### TC-8.3: Rate Limiting
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Admin BD list, click QR icon | Popup: BD name, tracking code, QR image, URL |
-| 2 | Test Copy + Download | Both work |
+| 1 | Scan same QR 6 times in 1 hour | First 5 succeed, 6th rate-limited |
 
 ---
 
-## 7. Order Attribution & Commission
+## 9. QR Code Flow — Multiple Products
 
-### TC-7.1: Commission Auto-Created
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Complete QR-attributed order | Order created |
-| 2 | Order status → `processing` | Commission record created, status `pending` |
-| 3 | Admin Commissions list | New commission: correct BD, amount, order #, period |
-
-### TC-7.2: Commission Calculation
+### TC-9.1: Scan → Product Selection Page
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Settings: commission rate = 10% | Saved |
-| 2 | Order net value = RM 188.00 | Commission = RM 18.80 |
+| 1 | Reseller has 2+ products (A01, Series 1) | — |
+| 2 | Scan BD's QR code | Redirected to `/my/select-product/` |
+| 3 | Page loads | EPOS branded page with product cards |
+| 4 | Each card shows | Product label, WC product name (subtitle), price, arrow |
+| 5 | Click a product | Redirected to product page → checkout |
+| 6 | Complete payment | Order attributed, commission based on selected product's assignment |
 
-### TC-7.3: No Duplicate Commission
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Order: `processing` → `on-hold` → `processing` | Only 1 commission (checked by `_epos_attribution_processed`) |
-
-### TC-7.4: Normal Order — No Attribution
+### TC-9.2: Product Selection — Cookie Required
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Place order without QR scan | No attribution, no commission |
+| 1 | Navigate to `/my/select-product/` directly (no QR scan) | Redirected to home (no cookie) |
+
+### TC-9.3: Product Selection — Loading State
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Click a product card | Selected card shows spinner, others fade to 40% |
+| 2 | User is redirected | To product page with BD params |
+
+### TC-9.4: No Products Assigned
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | BD's reseller has 0 products | — |
+| 2 | Scan QR | Error: "No products are currently available for this QR code." |
 
 ---
 
-## 8. Admin Commission Management
+## 10. Order Attribution & Commission
 
-### TC-8.1: Approve Single
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Click Approve on `pending` commission | Dialog: blue icon, ID + amount + BD name |
-| 2 | Click "Approve" | Status → `approved`, snackbar |
-
-### TC-8.2: Mark Paid Single
+### TC-10.1: Commission Created
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Click Paid on `approved` commission | Dialog: green icon |
-| 2 | Click "Mark Paid" | Status → `paid` |
+| 1 | Complete QR-attributed order | Order status → `processing` |
+| 2 | Check admin Commissions | New commission: correct BD, fixed amount from assignment, order # |
 
-### TC-8.3: Void Single
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Click Void on `pending` or `approved` | Dialog: warning, "cannot be undone" |
-| 2 | Click "Void" | Status → `voided` |
-
-### TC-8.4: Bulk Approve
+### TC-10.2: Fixed Commission Amount
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Select multiple `pending`, click "Approve" | Dialog: "approve X commission(s)?" |
-| 2 | Confirm | All → `approved` |
+| 1 | Product assignment has commission RM 20 | — |
+| 2 | Order placed for RM 188 | Commission = RM 20.00 (fixed, not percentage) |
 
-### TC-8.5: Bulk Mark Paid
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Select `approved`, click "Mark Paid", confirm | All → `paid` |
-
-### TC-8.6: Bulk Void
+### TC-10.3: No Assignment = RM 0
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Select multiple, click "Void" | Dialog warns "cannot be undone" |
-| 2 | Confirm | All → `voided` |
+| 1 | Order with product that has no assignment | Commission = RM 0.00 |
 
-### TC-8.7: Cancel Dialog
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Click any action | Dialog appears |
-| 2 | Click "Cancel" | Dialog closes, no change |
-
-### TC-8.8: Filter Commissions
+### TC-10.4: No Duplicate
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Filter Status = `Pending` | Only pending shown |
-| 2 | Filter Type = `Sales` | Only sales shown |
-| 3 | Clear filters | All shown |
+| 1 | Order: `processing` → `on-hold` → `processing` | Only 1 commission |
+
+### TC-10.5: Order Note
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Check WC order notes | Shows BD name, tracking code, product, commission (fixed) |
 
 ---
 
-## 9. Dashboard Access & Permissions
+## 11. Admin Commission Management
 
-### TC-9.1: BD Cannot Access Reseller API
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Login as BD, call `GET /dashboard/reseller` | `403 Forbidden` |
-
-### TC-9.2: Reseller Data Isolation
+### TC-11.1: Filter by Reseller
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Login as Reseller A | Dashboard loads |
-| 2 | API returns only Reseller A's BDs and orders | No data from Reseller B |
+| 1 | Select reseller from dropdown | Only that reseller's commissions shown |
+| 2 | BD dropdown auto-filters | Only selected reseller's BDs |
 
-### TC-9.3: BD Data Isolation
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Login as BD A | Dashboard loads |
-| 2 | API returns only BD A's orders | No data from BD B |
-
-### TC-9.4: Admin Full Access
+### TC-11.2: Filter by BD
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Login as Admin | All resellers, BDs, commissions accessible |
+| 1 | Select a BD | Only that BD's commissions shown |
+
+### TC-11.3: Filter by Status
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Select "Pending" | Only pending shown |
+
+### TC-11.4: Approve / Paid / Void
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Click action button | MUI confirmation dialog |
+| 2 | Confirm | Status updated |
+| 3 | Cancel | No change |
+
+### TC-11.5: Bulk Actions
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Select multiple, click action | Dialog shows count |
+| 2 | Confirm | All updated |
+
+### TC-11.6: Export with Filters
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Apply reseller + status filters, click Export | CSV contains only filtered data |
 
 ---
 
-## 10. Profile Management
+## 12. Dashboard Access & Permissions
 
-### TC-10.1: Update Personal Info
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Go to Profile | Form loads with current data |
-| 2 | Change name and phone, click "Save Profile" | Success snackbar |
-| 3 | Reload page | Updated values persist |
-
-### TC-10.2: Update Email
+### TC-12.1: BD Cannot Access Reseller API
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Change to new valid email, save | Email updated |
-| 2 | Try duplicate email | Error: "This email is already in use." |
+| 1 | Login as BD, call `GET /dashboard/reseller` | `403` |
 
-### TC-10.3: Update Bank Details
+### TC-12.2: Data Isolation
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Fill bank name, account number, holder name | Fields accept input |
-| 2 | Save and reload | Values persist |
+| 1 | Reseller A | Only sees own BDs/orders |
+| 2 | BD A | Only sees own orders |
 
-### TC-10.4: Upload Profile Photo
+---
+
+## 13. Profile Management
+
+### TC-13.1: Update Info
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Change name, phone, bank details | Saved and persists on reload |
+
+### TC-13.2: Upload Photo
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
 | 1 | Click camera icon, select image | Avatar updates |
-| 2 | Reload page | Photo persists |
+
+### TC-13.3: Update Email
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Change to new email, save | Updated |
+| 2 | Try duplicate email | Error |
 
 ---
 
-## 11. Serial Numbers
+## 14. Serial Numbers
 
-### TC-11.1: Assign SN (Admin Page)
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Admin → Serial Numbers, click "Assign S/N" | Dialog opens |
-| 2 | Enter order number + serial number | Fields accept input |
-| 3 | Click "Assign" | SN appears in list |
-
-### TC-11.2: Assign SN (WC Order Metabox)
+### TC-14.1: Assign SN
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Open order in WooCommerce | EPOS Serial Numbers metabox visible |
-| 2 | Enter SN, click "Assign" | SN saved and displayed |
+| 1 | Admin → Serial Numbers → Assign | SN saved |
+| 2 | WC Order metabox → Assign | SN saved |
 
-### TC-11.3: Duplicate SN
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Assign same SN to another order | Error: uniqueness violation |
-
-### TC-11.4: Delete SN
+### TC-14.2: Duplicate SN
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Click delete on assigned SN | SN removed |
+| 1 | Same SN to another order | Error |
 
 ---
 
-## 12. CSV Export
+## 15. CSV Export
 
-### TC-12.1: Export Commissions (Admin)
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Admin Commissions, apply filters, click "Export CSV" | CSV downloads |
-| 2 | Open CSV | Correct headers, data, formatting, multiple rows |
-
-### TC-12.2: Export BD Orders (Reseller)
+### TC-15.1: Export Commissions
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Reseller → BD's orders, click "Export CSV" | CSV with order data, "Number of Units" column |
+| 1 | Admin Commissions → Export CSV | File downloads with filtered data |
 
-### TC-12.3: Export BD Orders (BD)
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | BD → Orders, click "Export CSV" | CSV with own orders only |
-
-### TC-12.4: Export Reseller Performance
+### TC-15.2: Export BD Orders
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Reseller dashboard, click "Export CSV" | CSV with BD performance data |
+| 1 | Reseller/BD → Orders → Export | CSV with order data |
 
 ---
 
-## 13. Reseller BD Management
+## 16. Reseller BD Management
 
-### TC-13.1: Reseller Adds BD
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Reseller → Manage BDs, click "Add BD" | Dialog: name, email, BD code fields |
-| 2 | Fill and submit | BD created, snackbar: "Login credentials sent via email." |
-| 3 | Check BD email | Welcome email received |
-
-### TC-13.2: Reseller Edits BD
+### TC-16.1: Add BD
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Click Edit on BD | Edit dialog |
-| 2 | Change name, save | Name updated |
+| 1 | Reseller → Manage BDs → Add BD | Name + email only (code auto-generated) |
+| 2 | Submit | BD created, email sent |
 
-### TC-13.3: Reseller Deactivates BD
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Click Deactivate on active BD | MUI confirmation dialog |
-| 2 | Click "Deactivate" | BD deactivated |
-
-### TC-13.4: Reseller Reactivates BD
+### TC-16.2: Edit / Deactivate / Reactivate / QR
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | Click Reactivate on inactive BD | MUI confirmation dialog |
-| 2 | Click "Reactivate" | BD reactivated |
+| 1 | Edit | Name updated |
+| 2 | Deactivate | MUI dialog → confirmed → BD inactive |
+| 3 | Reactivate | MUI dialog → confirmed → BD active |
+| 4 | View QR | QR popup with copy/download |
 
-### TC-13.5: Reseller Views BD QR Code
-
-| Step | Action | Expected Result |
-|------|--------|-----------------|
-| 1 | Click QR icon on any BD | QR popup: name, tracking code, QR image, copy/download/share |
-
-### TC-13.6: Reseller Cannot See Other Reseller's BDs
+### TC-16.3: Data Isolation
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1 | API scoped to own reseller_id | Only own BDs returned |
+| 1 | Reseller A's BD list | Only own BDs shown |
 
 ---
 
 ## Quick Smoke Test Checklist (Pilot)
 
-- [ ] Create reseller → welcome email received → login works
-- [ ] Create BD under reseller → welcome email received → login works
-- [ ] BD changes password from Profile → logout → re-login with new password
-- [ ] BD QR scan → cart → checkout → order → commission shows as `pending`
-- [ ] Reseller QR scan → same flow works
-- [ ] Admin approves commission → status `approved`
-- [ ] Admin marks commission paid → status `paid`
-- [ ] Admin voids commission → status `voided`, confirmation warns "cannot be undone"
-- [ ] Admin deactivates BD → BD immediately logged out, cannot re-login
-- [ ] Admin reactivates BD → BD can login again
-- [ ] Admin deactivates reseller → reseller logged out, cannot re-login
-- [ ] Admin reactivates reseller → reseller can login again
-- [ ] Forgot password → code email received → enter code → reset works → login with new password
-- [ ] Forgot password → wrong code 5x → locked out → request new code
-- [ ] Non-logged-in user visits `/my/dashboard/bd/` → redirected to `/my/login/`
-- [ ] Non-logged-in user visits `/my/dashboard/reseller/` → redirected to `/my/login/`
-- [ ] BD cannot call reseller dashboard API → `403`
-- [ ] Reseller A cannot see Reseller B's data
-- [ ] CSV export works for commissions, BD orders, reseller performance
-- [ ] Reseller can add/edit/deactivate/reactivate their own BDs
-- [ ] Admin QR popup works for both Resellers and BDs (copy, download)
-- [ ] Serial number assign from admin + WC order metabox
-- [ ] Profile photo upload works for BD and Reseller
+**Setup:**
+- [ ] Add products to catalog: A01 (BlueTap, RM 20), Series 1 (RM 35)
+- [ ] Create reseller (prefix EPOS) → welcome email received
+- [ ] Assign products (A01 + Series 1) to reseller → labels show in list
+- [ ] Create BD under reseller → welcome email received, code auto-generated
+
+**Login & Password:**
+- [ ] Reseller login works → dashboard loads
+- [ ] BD login works → dashboard loads
+- [ ] Forgot password → code email → reset → login with new password
+- [ ] Change password from Profile → still logged in → re-login works
+
+**QR Flow (Single Product):**
+- [ ] Remove Series 1, keep only A01 → single product
+- [ ] BD QR scan → direct checkout → order → commission = RM 20 (fixed)
+
+**QR Flow (Multiple Products):**
+- [ ] Re-assign Series 1 → two products
+- [ ] BD QR scan → product selection page → pick A01 → checkout → commission correct
+
+**Admin:**
+- [ ] Commission filter by reseller/BD/status works
+- [ ] Approve → Mark Paid → Export CSV includes filters
+- [ ] Deactivate BD → logged out, QR fails
+- [ ] Reactivate BD → can login, QR works
+
+**Access Control:**
+- [ ] Non-logged-in → `/my/dashboard/bd/` → redirected to `/my/login/`
+- [ ] BD cannot call reseller API → `403`
+- [ ] Disabled account → logged out with warning

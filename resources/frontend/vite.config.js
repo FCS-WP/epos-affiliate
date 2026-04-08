@@ -15,6 +15,11 @@ const entries = {
     entryFileNames: 'login.js',
     assetFileNames: 'login.[ext]',
   },
+  'select-product': {
+    input: resolve(__dirname, 'src/select-product.jsx'),
+    entryFileNames: 'select-product.js',
+    assetFileNames: 'select-product.[ext]',
+  },
 };
 
 const config = entries[entry] || entries.main;

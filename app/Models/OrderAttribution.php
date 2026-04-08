@@ -33,6 +33,7 @@ class OrderAttribution {
             'reseller_id'   => absint( $data['reseller_id'] ),
             'tracking_code' => sanitize_text_field( $data['tracking_code'] ?? '' ),
             'order_value'   => floatval( $data['order_value'] ?? 0 ),
+            'product_id'    => absint( $data['product_id'] ?? 0 ) ?: null,
         ] );
 
         return $wpdb->insert_id ?: false;

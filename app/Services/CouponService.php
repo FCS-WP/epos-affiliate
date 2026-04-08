@@ -19,15 +19,11 @@ class CouponService {
             return false;
         }
 
-        $settings   = get_option( 'epos_affiliate_settings', [] );
-        $product_id = absint( $settings['product_id'] ?? 2174 );
-
         $coupon = new \WC_Coupon();
         $coupon->set_code( strtolower( $tracking_code ) );
         $coupon->set_discount_type( 'fixed_cart' );
         $coupon->set_amount( 0 );                       // RM0 — tracking only.
         $coupon->set_individual_use( true );             // No stacking.
-        $coupon->set_product_ids( [ $product_id ] );     // Tied to BlueTap.
         $coupon->set_usage_limit( 0 );                   // Unlimited usage.
         $coupon->set_date_expires( null );               // No expiry.
 

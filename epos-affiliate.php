@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Plugin constants.
  */
-define( 'EPOS_AFFILIATE_VERSION', '1.0.0' );
+define( 'EPOS_AFFILIATE_VERSION', '1.1.0' );
 define( 'EPOS_AFFILIATE_FILE', __FILE__ );
 define( 'EPOS_AFFILIATE_PATH', plugin_dir_path( __FILE__ ) );
 define( 'EPOS_AFFILIATE_URL', plugin_dir_url( __FILE__ ) );
@@ -56,6 +56,12 @@ add_action( 'plugins_loaded', function () {
             echo '</p></div>';
         } );
         return;
+    }
+
+    // Auto-upgrade: run installer if DB version has changed (creates new tables without reactivation).
+    $db_version = get_option( 'epos_affiliate_db_version', '' );
+    if ( $db_version !== EPOS_AFFILIATE_VERSION ) {
+        EposAffiliate\Setup\Installer::activate();
     }
 
     // Load text domain.

@@ -206,8 +206,12 @@ class DashboardController {
             ];
         }
 
+        $product_assignments = \EposAffiliate\Models\ProductAssignment::effective_for_bd( $bd->id, $bd->reseller_id );
+        $active_products     = array_filter( $product_assignments, fn( $a ) => $a->status === 'active' );
+
         return new WP_REST_Response( [
             'tracking_code' => $bd->tracking_code,
+            'has_products'  => count( $active_products ) > 0,
             'kpis' => [
                 'total_orders'         => (int) ( $stats->total_orders ?? 0 ),
                 // 'commission_paid'      => $commission_paid,
